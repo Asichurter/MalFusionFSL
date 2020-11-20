@@ -52,12 +52,18 @@ def datasetTraverse(dir_path,               # 数据集的根目录
                 reporter.logSuccess()
                 if success_callback is not None:
                     success_callback(stat_list, stat_dict)
+                else:
+                    print('Success')
             except Exception as e:
                 reporter.logError(entity=folder_path+item,
                                   msg=str(e))
                 if fail_callback is not None:
                     fail_callback(e, stat_list, stat_dict)
+                else:
+                    print('Error',str(e))
 
     reporter.report()
     if final_callback is not None:
         final_callback(reporter, stat_list, stat_dict)
+    else:
+        print("Done")

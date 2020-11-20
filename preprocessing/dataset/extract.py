@@ -25,12 +25,6 @@ def extractAPISequenceFromRaw(dir_path, dst_path, log_dump_path=None):
         dumpJson(new_report, dst_path+md5+'.json')
         return list_, dict_
 
-    def extractAPISequenceFromRawScb(list_, dict_):
-        print("Success")
-
-    def extractAPISequenceFromRawFcb(e_, list_, dict_):
-        print("Error:", str(e_))
-
     def extractAPISequenceFromRawFNcb(reporter_, list_, dict_):
         if log_dump_path is not None:
             reporter_.dump(log_dump_path)
@@ -40,8 +34,6 @@ def extractAPISequenceFromRaw(dir_path, dst_path, log_dump_path=None):
                     class_dir=False,
                     name_prefix='report',
                     name_suffix='.json',
-                    success_callback=extractAPISequenceFromRawScb,
-                    fail_callback=extractAPISequenceFromRawFcb,
                     final_callback=extractAPISequenceFromRawFNcb)
 
 
