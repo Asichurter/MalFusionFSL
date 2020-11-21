@@ -67,3 +67,46 @@ def datasetTraverse(dir_path,               # 数据集的根目录
         final_callback(reporter, stat_list, stat_dict)
     else:
         print("Done")
+
+def jsonPathListLogTraverse(log_file_path,
+                            exec_kernel,
+                            list_key,
+                            success_callback=None,
+                            fail_callback=None,
+                            final_callback=None):
+
+    count = 0
+    reporter = Reporter()
+    stat_list = []          # 执行过程中维护的数据列表
+    stat_dict = {}          # 执行过程中维护的数据字典
+
+    log_report = loadJson(log_file_path)
+
+    for filep in log_report[list_key]:
+        count += 1
+
+        try:
+            report = loadJson(filep)
+            stat_list, stat_dict = exec_kernel(count,
+                                               filep,
+                                               report,
+                                               stat_list,
+                                               stat_dict)
+            reporter.logSuccess()
+            if success_callback is not None:
+                success_callback(stat_list, stat_dict)
+            else:
+                print('Success')
+        except Exception as e:
+            reporter.logError(entity=filep,
+                              msg=str(e))
+            if fail_callback is not None:
+                fail_callback(e, stat_list, stat_dict)
+            else:
+                print('Error', str(e))
+
+    reporter.report()
+    if final_callback is not None:
+        final_callback(reporter, stat_list, stat_dict)
+    else:
+        print("Done")
