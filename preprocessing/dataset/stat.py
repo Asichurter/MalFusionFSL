@@ -2,7 +2,7 @@ import os
 from tqdm import tqdm
 
 from utils.file import loadJson, dumpIterable, dumpJson
-from utils.general import datasetTraverse
+from utils.general import datasetTraverse, jsonPathListLogTraverse
 
 #####################################################
 # 统计数据集中存在API调用序列且序列长度满足要求的文件
@@ -68,19 +68,19 @@ def statExceptionReport(dir_path, class_dir=False,
             dict_ = {
                 'noexc': 0,
                 'exc': 0,
-                'err': 0
+                'err': 0,
+                'exc_list': [],
+                'noexc_list': []
             }
 
-        for api in report_['apis']:
-            if api == '__exception__':
+        for api, napi in zip(report_['apis'], report_['apis'][1:]+['END']):     # 在尾部填补一个END符号以补齐长度
+            if api == '__exception__' and napi == 'NtTerminateProcess':         # 发生exception以后进程立刻被终止
                 dict_['exc'] += 1
-                list_.append({'file': filep_,
-                              'hasExc': True})
+                dict_['exc_list'].append(filep_)
                 print('Exception')
                 return list_, dict_
         dict_['noexc'] += 1
-        list_.append({'file': filep_,
-                      'hasExc': False})
+        dict_['noexc_list'].append(filep_)
         print('Normal')
         return list_,dict_
 
@@ -97,8 +97,9 @@ def statExceptionReport(dir_path, class_dir=False,
         print('*' * 50)
 
         if dump_noexp_path is not None:
-            dumpIterable(list_, title='exception_check_results',
-                         path=dump_noexp_path)
+            dumpJson({'has_exception': dict_['exc_list'],
+                      'no_exception': dict_['noexc_list']},
+                     dump_noexp_path)
 
 
     datasetTraverse(dir_path=dir_path,
@@ -112,11 +113,10 @@ def statExceptionReport(dir_path, class_dir=False,
 #####################################################
 # 统计数据集中按照name划分的family的规模情况
 #####################################################
-def statMalClassesOnNames(dir_path,
-                          # log_file_path=None,
-                          # log_list_key=None,               # list型log的list键值
-                          # log_item_path_key=None,          # list型log的每一个item需要的元素的键值
-                          dump_log_path=None):
+def statMalClassesOnNames(exc_log_file_path=None,
+                          exc_log_list_key=None,               # list型log的list键值
+                          dump_log_path=None,
+                          scale_stairs=[20,40,50,60,80,100]):
 
 
     def statMalClassesOnNamesInner(count_, filep_, report_, list_, dict_):
@@ -136,10 +136,21 @@ def statMalClassesOnNames(dir_path,
         if dump_log_path is not None:
             dumpJson(dict_, dump_log_path)
 
-    datasetTraverse(dir_path=dir_path,
-                    exec_kernel=statMalClassesOnNamesInner,
-                    class_dir=True,                     # 所有report必须存在于一个上级文件夹单独存在的目录中，即唯一class
-                    final_callback=statMalClassesOnNamesFNcb)
+        counts = [0]*len(scale_stairs)
+        for family, f_list in dict_.items():
+            for i,s in enumerate(scale_stairs):
+                if len(f_list) >= s:
+                    counts[i] += 1
+
+        for s,c in zip(scale_stairs, counts):
+            print("More than %d items:"%s, c)
+
+
+    jsonPathListLogTraverse(log_file_path=exc_log_file_path,
+                            exec_kernel=statMalClassesOnNamesInner,
+                            list_key=exc_log_list_key,
+                            final_callback=statMalClassesOnNamesFNcb)
+
 
 if __name__ == '__main__':
     # statValidJsonReport(dir_path='F:/result2/cuckoo/analyses/',
@@ -149,5 +160,6 @@ if __name__ == '__main__':
     # statExceptionReport(dir_path='E:/LargePE-API-raw/extracted/',
     #                     class_dir=True,
     #                     dump_noexp_path='E:/LargePE-API-raw/reports/exception_stat_log.json')
-    statMalClassesOnNames(dir_path='E:/LargePE-API-raw/extracted/',
+    statMalClassesOnNames(exc_log_file_path='E:/LargePE-API-raw/reports/exception_stat_log.json',
+                          exc_log_list_key='no_exception',
                           dump_log_path='E:/LargePE-API-raw/reports/class_stat_log.json')
