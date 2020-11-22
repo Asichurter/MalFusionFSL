@@ -59,6 +59,7 @@ def statValidJsonReport(dir_path, len_thresh=10,
 #####################################################
 def statExceptionReport(dir_path, class_dir=False,
                         name_prefix=None,
+                        exception_call_patience=20,
                         dump_noexp_path=None):
 
     def statExceptionReportInner(count_, filep_, report_, list_, dict_):
@@ -73,8 +74,30 @@ def statExceptionReport(dir_path, class_dir=False,
                 'noexc_list': []
             }
 
-        for api, napi in zip(report_['apis'], report_['apis'][1:]+['END']):     # 在尾部填补一个END符号以补齐长度
-            if api == '__exception__' and napi == 'NtTerminateProcess':         # 发生exception以后进程立刻被终止
+        apis = report_['apis']
+        for i in range(len(apis)):
+            if apis[i] == '__exception__' and i+1 < len(apis):      # 只关注exception出现的位置
+                if apis[i+1] == 'NtTerminateProcess' and i+2==len(apis):           # 如果exception发生以后立刻terminate且进程结束，检测成功
+                    print('terminate', end=' ')
+                elif apis[i+1] == '__exception__':              # 如果连续的exception出现
+                    j = 1
+                    flag = False
+
+                    while i+j < len(apis):                      # 检测连续的exception是否超过了耐心值
+                        if j == exception_call_patience:        # 连续的exception达到了耐心值，检测成功
+                            flag = True
+                            print('successive exceptions', end=' ')
+                            break
+                        elif apis[i+j] != '__exception__':
+                            break
+                        else:
+                            j += 1
+
+                    if not flag:
+                        continue
+                else:               # 其余所有情况都视为检测失败
+                    continue
+
                 dict_['exc'] += 1
                 dict_['exc_list'].append(filep_)
                 print('Exception')
