@@ -8,7 +8,7 @@ def statNGramFrequency(dir_path,
                        class_dir=True,
                        log_dump_path=None):
 
-    def statNGramFrequencyInner(count_, filep_, report_, list_, dict_):
+    def statNGramFrequencyInner(count_, filep_, report_, list_, dict_, **kwargs):
         apis = report_['apis']
         print('# %d' % count_, filep_, 'len=%d' % len(apis), end=' ')
 
@@ -49,9 +49,10 @@ def mapAndExtractTopKNgram(dir_path,
 
     ngram_fre = loadJson(ngram_stat_log_path)
     sorted_ngrams = sorted(ngram_fre.items(), key=lambda x:x[1], reverse=True)[:K]
-    topk_ngrams = {x[0]:i for i,x in enumerate(sorted_ngrams)}      # 将NGram映射为下标序号
+    topk_ngrams = {x[0]:i+1 for i,x in enumerate(sorted_ngrams)}      # 将NGram映射为下标序号
+    topk_ngrams['<PAD>'] = 0        # 0为pad
 
-    def mapAndExtractTopKNgramInner(count_, filep_, report_, list_, dict_):
+    def mapAndExtractTopKNgramInner(count_, filep_, report_, list_, dict_, **kwargs):
         print('# %d' % count_, end=' ')
         new_seq = []
         apis = report_['apis']
