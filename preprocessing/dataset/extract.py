@@ -7,7 +7,7 @@ from utils.log import Reporter
 
 def extractAPISequenceFromRaw(dir_path, dst_path, log_dump_path=None):
 
-    def extractAPISequenceFromRawInner(count_, file_path_, report_, list_, dict_):
+    def extractAPISequenceFromRawInner(count_, file_path_, report_, list_, dict_, **kwargs):
         print("# %d"%count_, end=' ')
         new_report = {}
         new_report['sha1'] = report_['target']['file']['sha1']

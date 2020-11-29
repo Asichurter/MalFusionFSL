@@ -17,6 +17,7 @@ def datasetTraverse(dir_path,               # 数据集的根目录
                     class_dir=False,        # 是否是按类划分的数据集
                     name_prefix=None,       # 数据集文件的前缀，若为None则为文件夹名
                     name_suffix=None,       # 数据集文件的后缀，若为None则为.json
+                    load_func=loadJson,     # 加载数据文件的函数
                     success_callback=None,  # 成功执行一次数据文件处理后的回调函数，用于打印信息等
                                             # // 参数：(数据列表，数据字典)
                     fail_callback=None,     # 执行一次数据文件处理失败后的回调函数，用于打印调试信息
@@ -42,12 +43,17 @@ def datasetTraverse(dir_path,               # 数据集的根目录
             count += 1
 
             try:
-                report = loadJson(folder_path+item)
+                if load_func is not None and callable(load_func):
+                    report = load_func(folder_path+item)
+                else:
+                    report = None
                 stat_list, stat_dict = exec_kernel(count,
                                                    folder_path+item,
                                                    report,
                                                    stat_list,
-                                                   stat_dict)
+                                                   stat_dict,
+                                                   folder=folder,
+                                                   item=item)
 
                 reporter.logSuccess()
                 if success_callback is not None:
@@ -103,7 +109,7 @@ def jsonPathListLogTraverse(log_file_path,
             if fail_callback is not None:
                 fail_callback(e, stat_list, stat_dict)
             else:
-                print('Error', str(e))
+                print('Error:', str(e))
 
     reporter.report()
     if final_callback is not None:

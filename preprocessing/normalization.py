@@ -5,7 +5,7 @@ from utils.file import loadJson
 def removeAPIRedundancy(dir_path,
                         class_dir=True):
 
-    def removeAPIRedundancyInner(count_, filep_, report_, list_, dict_):
+    def removeAPIRedundancyInner(count_, filep_, report_, list_, dict_, **kwargs):
         print('# %d'%count_, end=' ')
 
         new_report = {key:val for key,val in report_.items()}

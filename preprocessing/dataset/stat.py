@@ -62,7 +62,7 @@ def statExceptionReport(dir_path, class_dir=False,
                         exception_call_patience=20,
                         dump_noexp_path=None):
 
-    def statExceptionReportInner(count_, filep_, report_, list_, dict_):
+    def statExceptionReportInner(count_, filep_, report_, list_, dict_, **kwargs):
         print('# %d'%count_, filep_, end=' ')
 
         if len(dict_) == 0:
