@@ -26,6 +26,6 @@ def sampleClassWiseData(dst_path,
 
 
 if __name__ == '__main__':
-    sampleClassWiseData(dst_path='E:/LargePE-API-raw/families/Per-50/',
+    sampleClassWiseData(dst_path='E:/LargePE-API-raw/families/Per-40/',
                         log_file_path='E:/LargePE-API-raw/reports/class_stat_log.json',
-                        num_per_class=50)
+                        num_per_class=40)

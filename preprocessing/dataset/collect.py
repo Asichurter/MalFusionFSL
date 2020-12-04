@@ -47,9 +47,9 @@ def collectPEwithAPI(api_dir_path,
         reporter.dump(log_dump_path)
 
 if __name__ == '__main__':
-    collectPEwithAPI(api_dir_path='E:/LargePE-API-raw/families/Per-50/',
+    collectPEwithAPI(api_dir_path='D:/datasets/LargePE-Per40/all/api/',
                      pe_dir_path='E:/pe/',
-                     dst_path='E:/LargePE-API-raw/pe_families/',
+                     dst_path='D:/datasets/LargePE-Per40/all/pe/',
                      class_dir=True,
                      log_dump_path='E:/LargePE-API-raw/reports/pe_collect_log.json')
 

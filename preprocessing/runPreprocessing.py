@@ -5,7 +5,8 @@ from preprocessing.dataset.structure import makeDatasetDirStruct
 from preprocessing.dataset.rename import renamePEbyMD5fromApi
 from preprocessing.image import convertDir2Image, convert
 from preprocessing.dataset.split import splitDataset
-from preprocessing.pack import packDataFile
+from preprocessing.pack import packAllSubsets
+from utils.manager import PathManager
 
 # 调用顺序：rmRedundancy -> statNGramFre -> mapAndExtract
 
@@ -41,7 +42,8 @@ from preprocessing.pack import packDataFile
 #              validate_ratio=30,
 #              test_ratio=30)
 
-packDataFile(api_path='/home/omnisky/NewAsichurter/FusionData/datasets/LargePE-Per40/train')
+packAllSubsets("LargePE-Per40", num_per_class=40, max_seq_len=300)
+
 
 
 
