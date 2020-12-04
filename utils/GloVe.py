@@ -102,4 +102,4 @@ if __name__ == '__main__':
     trainGloVe(seqs,
                size=args.size,
                save_matrix_path=args.basepath + args.dataset + "/data/matrix.npy",      # 2.7环境没有torch，直接存为npy格式
-               save_word2index_path=args.basepath + args.dataset + "/data/wordMap.json")
+               save_word2index_path=args.basepath + args.dataset + "/data/word_map.json")
