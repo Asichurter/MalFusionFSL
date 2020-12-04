@@ -7,14 +7,17 @@ from tqdm import tqdm
 from torch.nn.utils.rnn import pad_sequence
 
 from utils.file import loadJson, dumpJson
+from utils.manager import PathManager
 
-def _truncateAndMapTokenToIdx(token_seq, mapping, max_len):
-    res_seq = []
 
-    for token in token_seq[:max_len]:
-        res_seq.append(mapping[str(token)])
+def _truncateAndMapTokenToIdx(token_seqs, mapping, max_len):
+    for i,seq in enumerate(token_seqs):
+        res_seq = []
+        for token in seq[:max_len]:
+            res_seq.append(mapping[str(token)])
+        token_seqs[i] = t.LongTensor(res_seq)
 
-    return res_seq
+    return token_seqs
 
 def _calculateImgMeanAndStd(img_path):
     data = []
@@ -37,14 +40,16 @@ def _calculateImgMeanAndStd(img_path):
 # 数，也会按照最大序列长度进行截断。
 ##########################################################
 def _packDataFile(api_path,
-                 img_path,
-                 w2idx_path,
-                 seq_length_save_path,
-                 api_data_save_path,
-                 img_data_save_path,
-                 num_per_class,
-                 idx2cls_mapping_save_path=None,
-                 max_seq_len=600):
+                  img_path,
+                  w2idx_path,
+                  seq_length_save_path,
+                  api_data_save_path,
+                  img_data_save_path,
+                  num_per_class,
+                  idx2cls_mapping_save_path=None,
+                  max_seq_len=600,
+                  img_suffix='jpg',
+                  img_size=(1,256,256)):
 
     api_data_list = []
     img_data_list = []
@@ -69,12 +74,17 @@ def _packDataFile(api_path,
         for item in os.listdir(api_folder_path):
             report = loadJson(api_folder_path + item)
             apis = report['apis']
-            apis.append(apis)          # 添加API序列
+            api_data_list.append(apis)          # 添加API序列
 
-            img = transform(Image.open(img_folder_path+item))
-            img_data_list.append(img)
+            img_item = item[:-4]+img_suffix
+
+            img = transform(Image.open(img_folder_path+img_item))
+            # img_data_list = t.cat((img_data_list, t.unsqueeze(img, dim=0)), dim=0)
+            img_data_list.append(img.tolist())
 
         folder_name_mapping[cls_idx] = cls_dir
+
+    img_data_list = img_data_list[0:]       # 丢掉初始化时填入的0占位
 
     print('Converting...')
     api_data_list = _truncateAndMapTokenToIdx(api_data_list,
@@ -97,17 +107,25 @@ def _packDataFile(api_path,
     if idx2cls_mapping_save_path is not None:
         dumpJson(folder_name_mapping, idx2cls_mapping_save_path)
 
-    t.save(api_data_list, api_data_save_path)                   # 存储填充后的数据文件
+    t.save(t.LongTensor(api_data_list), api_data_save_path)                   # 存储填充后的数据文件
     t.save(t.FloatTensor(img_data_list), img_data_save_path)
 
     print('Done')
 
 
-def packAllSubsets(dataset_path,
+def packAllSubsets(dataset,
                    num_per_class,
                    max_seq_len=300):
 
     for subset in ['train', 'validate', 'test']:
-        _packDataFile(api_path=dataset_path+subset+'/api/',
-                      img_path=dataset_path+subset+'/img/',
-                      w2idx_path=dataset_path+'data/wordMap.json')
+        print("Packing", subset, "...")
+        pm = PathManager(dataset, subset)
+        _packDataFile(api_path=pm.apiDataFolder(),
+                      img_path=pm.imgDataFolder(),
+                      w2idx_path=pm.wordIndex(),
+                      seq_length_save_path=pm.apiSeqLen(),
+                      num_per_class=num_per_class,
+                      api_data_save_path=pm.apiData(),
+                      img_data_save_path=pm.imgData(),
+                      idx2cls_mapping_save_path=pm.subsdetIdxClassMapper(),
+                      max_seq_len=max_seq_len)
