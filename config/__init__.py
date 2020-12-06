@@ -1,5 +1,4 @@
 import platform
-import os
 
 from utils.file import loadJson
 

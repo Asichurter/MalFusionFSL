@@ -9,7 +9,9 @@ from torch.nn.utils.rnn import pad_sequence
 from utils.file import loadJson, dumpJson
 from utils.manager import PathManager
 
-
+##############################################################
+# 将长序列截断，同时利用将原序列映射为词嵌入的下标
+##############################################################
 def _truncateAndMapTokenToIdx(token_seqs, mapping, max_len):
     for i,seq in enumerate(token_seqs):
         res_seq = []
@@ -19,6 +21,10 @@ def _truncateAndMapTokenToIdx(token_seqs, mapping, max_len):
 
     return token_seqs
 
+
+##############################################################
+# 将长序列截断，同时利用将原序列映射为词嵌入的下标
+##############################################################
 def _calculateImgMeanAndStd(img_path):
     data = []
     transformer = T.ToTensor()
@@ -37,7 +43,7 @@ def _calculateImgMeanAndStd(img_path):
 # 用于根据已经按类分好的JSON形式数据集，根据已经生成的嵌入矩阵和
 # 词语转下标表来将数据集整合，token替换为对应的词语下标序列，同时pad，最后
 # 将序列长度文件和数据文件进行存储的总调用函数。运行时要检查每个类的样本
-# 数，也会按照最大序列长度进行截断。
+# 数，也会按照最大序列长度进行截断。图像数据同样会被整合到文件中
 ##########################################################
 def _packDataFile(api_path,
                   img_path,
@@ -99,6 +105,7 @@ def _packDataFile(api_path,
     #　不一致的错误
     if api_data_list.size(1) < max_seq_len:
         padding_size = max_seq_len - api_data_list.size(1)
+
         zero_paddings = t.zeros((api_data_list.size(0),padding_size))
         api_data_list = t.cat((api_data_list, zero_paddings),dim=1)
 
@@ -113,6 +120,10 @@ def _packDataFile(api_path,
     print('Done')
 
 
+##########################################################
+# 同时将一个数据集中的train，validate和test同时打包成为文件格式
+# 以便于读取到内存中
+##########################################################
 def packAllSubsets(dataset,
                    num_per_class,
                    max_seq_len=300):
