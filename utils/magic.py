@@ -1,5 +1,6 @@
 from time import time
 import random as rd
+import numpy as np
 
 magic = 7355608
 magic_list_size = 100000
@@ -40,3 +41,8 @@ def nRandom(n, seed=None):
 
     seeds = [rd.randint(0,magic) for i in range(n)]
     return seeds
+
+def randPermutation(perm_len, seed=None):
+    seed = magicSeed() if seed is None else seed
+    np.random.seed(seed)
+    return np.random.permutation(perm_len)
