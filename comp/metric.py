@@ -12,16 +12,17 @@ class Metric:
     def updateLabels(self, labels):
         self.Labels = labels
 
-    def stat(self, out, acc_only=True):
+    def stat(self, out, is_labels=False, acc_only=True):
         n = self.n
         labels = self.Labels
 
-        if self.Expand:
-            labels = t.argmax(labels, dim=1)
-            out = t.argmax(out.view(-1,n), dim=1)
+        if not is_labels:
+            if self.Expand:
+                labels = t.argmax(labels, dim=1)
+                out = t.argmax(out.view(-1,n), dim=1)
 
-        else:
-            out = t.argmax(out, dim=1)
+            else:
+                out = t.argmax(out, dim=1)
 
         assert labels.size() == out.size()
 

@@ -116,7 +116,7 @@ class EpisodeTask:
         return self.LabelsCache
 
     def metrics(self, out, is_labels=False, acc_only=True):
-        return self.Metric.stat()
+        return self.Metric.stat(out, acc_only, is_labels)
 
 
 ##########################################################
