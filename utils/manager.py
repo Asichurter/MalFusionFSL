@@ -1,5 +1,11 @@
+import warnings
 import config
+import numpy as np
+import torch as t
+
+from utils.file import dumpJson
 from utils.os import joinPath
+from utils.timer import StepTimer
 
 ##########################################################
 # 项目数据集路径管理器。
@@ -83,3 +89,244 @@ class PathManager:
     # 子集的data根目录
     def subDataBase(self):
         return joinPath(self.Base, 'data', self.Subset, is_dir=True)
+
+
+#########################################
+# 训练时的统计数据管理器。主要用于记录训练和验证的
+# 正确率和损失值，并且根据选择的标准来选择最优模型
+# 保存和打印训练数据。在记录验证数据时会打印训练和
+# 验证信息
+#########################################
+class StatManager:
+    def __init__(self,
+                 report_iter=100,
+                 metric_num=1,
+                 criteria = "metric",
+                 criteria_metric_index=0,
+                 metric_names=['Acc']):
+
+        self.MetricHist = []
+        self.LossHist = []
+        self.MetricNum = metric_num
+        self.MetricNames = metric_names
+        self.CriteriaMetricIndex = criteria_metric_index
+        self.Criteria = criteria
+        self.BestVal = float('inf') if criteria=='loss' else -1.
+        self.BestValEpoch = -1
+        self.ReportIter =report_iter
+
+        self.RecMetricCache = None
+        self.RecLossCache = None
+
+        if criteria not in ['metric', 'loss']:
+            warnings.warn("没有指定保存模型的Criteria，默认为总是保存最新，即关闭提前停止")
+
+    def record(self, metric, loss):
+        # 适配np的ndarray
+        if isinstance(metric, np.ndarray):
+            metric = metric.tolist()
+        self.MetricHist += metric
+        self.LossHist.append(loss)
+
+    def update(self, current_epoch):
+        if self.Criteria == 'metric':
+            best_recent_val = self.getRecentMetric()[self.CriteriaMetricIndex]
+            if best_recent_val > self.BestVal:
+                self.BestVal = best_recent_val
+                self.BestValEpoch = current_epoch
+                return True
+            else:
+                return False
+
+        elif self.Criteria == 'loss':
+            best_recent_loss = self.getRecentLoss()
+            if best_recent_loss < self.BestVal:
+                self.BestVal = best_recent_loss
+                self.BestValEpoch = current_epoch
+                return True
+            else:
+                return False
+
+        # 默认为保存最新模型
+        return True
+
+    def printRecent(self, title, all_time=False, cache_recent=True):
+        print(title, end=' :')
+        recent_metric = self.getRecentMetric()
+        recent_loss = self.getRecentLoss()
+        for i,name in enumerate(self.MetricNames):
+            print(f"{name}:{recent_metric[i]}", end=" ")
+        print()
+        print(title, 'loss:', recent_loss)
+
+        if all_time:
+            self.printAllTime(title='Current '+title)
+
+        if cache_recent:
+            self.RecMetricCache = recent_metric
+            self.RecLossCache = recent_loss
+
+    def printAllTime(self, title):
+        print(title, end=' :')
+        all_time_metric = self.getAlltimeMetric()
+        all_time_loss = self.getAlltimeLoss()
+        for i, name in enumerate(self.MetricNames):
+            print(f"{name}:{all_time_metric[i]}", end=" ")
+        print()
+        print(title, 'loss:', all_time_loss)
+
+    def getRecentMetric(self):
+        n = self.MetricNum
+        iter_len = self.ReportIter
+        return [np.mean(self.MetricHist[-n*iter_len+i::n]) for i in range(n)]       # 取出最后iter_len个指标的平均值
+
+    def getRecentLoss(self):
+        iter_len = self.ReportIter
+        return np.mean(self.LossHist[-iter_len:])
+
+    def getAlltimeMetric(self):
+        n = self.MetricNum
+        return [np.mean(self.MetricHist[i::n]) for i in range(n)]
+
+    def getAlltimeLoss(self):
+        return np.mean(self.LossHist)
+
+
+class TrainStatManager:
+    def __init__(self,
+                 stat_save_path=None,
+                 model_save_path=None,
+                 save_latest_model=False,
+                 train_report_iter=100,
+                 val_report_iter=50,
+                 total_iter=50000,
+                 metric_num=1,
+                 criteria = "metric",
+                 criteria_metric_index=0,
+                 metric_names=['Acc']):
+
+        self.TrainStat = StatManager(train_report_iter, metric_num, metric_names=metric_names)
+        self.ValStat = StatManager(val_report_iter, metric_num, criteria, criteria_metric_index, metric_names)
+
+        self.StatSavePath = stat_save_path
+        self.ModelSavePath = model_save_path
+        self.SaveLastestModelFlag = save_latest_model
+        self.Timer = StepTimer(total_steps=total_iter)
+
+        self.TrainIterCount = 0
+        self.ValIterCount = 0
+        self.TrainReportIter = train_report_iter
+        self.ValReportIter = val_report_iter
+
+    def begin(self):
+        self.Timer.begin()
+
+    def recordTrain(self, metric, loss):
+        self.TrainStat.record(metric, loss)
+        self.TrainIterCount += 1
+
+    # 记录每一次validate的结果，自动化判断是否val是否结束进行打印
+    def recordVal(self, metric, loss, model):
+        self.ValStat.record(metric, loss)
+        self.ValIterCount += 1
+
+        if self.ValIterCount % self.ValReportIter == 0:
+            updated = self.ValStat.update(self.TrainIterCount)
+
+            if updated and self.ModelSavePath is not None:
+                t.save(model.state_dict(), self.ModelSavePath)
+            if self.SaveLastestModelFlag and self.ModelSavePath is not None:
+                t.save(model.state_dict(), self.ModelSavePath+'_latest')
+
+            self._printBlockSeg()
+            self.TrainStat.printRecent(title='Train', all_time=False)
+            self._printSectionSeg()
+            self.ValStat.printRecent(title='Val', all_time=False)
+            self._printSectionSeg()
+            self.Timer.step(prt=True, end=False)
+            self._printBlockSeg()
+            self._printNextTip()
+
+    def dumpStatHist(self):
+        res = {
+            'train': {
+                'metrics': self.TrainStat.MetricHist,
+                'loss': self.TrainStat.LossHist
+            },
+            'validate': {
+                'metrics': self.ValStat.MetricHist,
+                'loss': self.ValStat.LossHist
+            }
+        }
+        if self.StatSavePath is not None:
+            dumpJson(res, self.StatSavePath)
+
+    def _printSectionSeg(self):
+        print('----------------------------------')
+
+    def _printBlockSeg(self):
+        print('***********************************')
+
+    def _printNextTip(self):
+        print('\n\n%d -> %d epoches...' % (self.TrainIterCount, self.TrainIterCount + self.TrainReportIter))
+
+    # 用于绘制总体图时使用的压缩hist方法
+    def getHistMetric(self, idx=0):
+        th = self.TrainStat.MetricHist[idx::self.TrainStat.MetricNum]
+        vh = self.ValStat.MetricHist[idx::self.ValStat.MetricNum]
+        th,vh = np.array(th), np.array(vh)
+        th = np.mean(th.reshape(-1, self.TrainReportIter), axis=1)
+        vh = np.mean(th.reshape(-1, self.ValReportIter), axis=1)
+        return th,vh
+
+    # 用于绘制总体图时使用的压缩hist方法
+    def getHistLoss(self):
+        th = self.TrainStat.LossHist
+        vh = self.ValStat.LossHist
+        th, vh = np.array(th), np.array(vh)
+        th = np.mean(th.reshape(-1, self.TrainReportIter), axis=1)
+        vh = np.mean(th.reshape(-1, self.ValReportIter), axis=1)
+        return th, vh
+
+    # 该方法使用cache，因此必须保证在printRecent之后调用
+    # 主要用于实时的metric的plot
+    def getRecentRecord(self, metric_idx=0):
+        return self.TrainStat.RecMetricCache[metric_idx], self.TrainStat.RecLossCache, \
+               self.ValStat.RecMetricCache[metric_idx], self.ValStat.RecLossCache
+
+
+class TestStatManager:
+    def __init__(self,
+                 stat_save_path=None,
+                 test_report_iter=100,
+                 total_iter=50000,
+                 metric_num=1,
+                 metric_names=['Acc']):
+
+        self.TestStat = StatManager(test_report_iter, metric_num, metric_names=metric_names)
+        self.StatSavePath = stat_save_path
+        self.Timer = StepTimer(total_steps=total_iter)
+        self.TestIterCount = 0
+        self.TotalIter = total_iter
+        self.ReportIter = test_report_iter
+
+    def begin(self):
+        self.Timer.begin()
+
+    def recordTest(self, metric, loss):
+        self.TestStat.record(metric, loss)
+        self.TestIterCount += 1
+
+        if self.TestIterCount == self.TotalIter:
+            self._printBlockSeg()
+            print('Final Statistics:')
+            self.TestStat.printAllTime(title="Final Test")
+            self.Timer.step(prt=True, end=True)
+
+        elif self.TestIterCount % self.ReportIter == 0:
+            print(self.TestIterCount, "Epoch")
+            self.TestStat.printRecent(title="Test", all_time=True)
+            self.Timer.step(prt=True)
+
+    def _printBlockSeg(self):
+        print('\n\n****************************************')
