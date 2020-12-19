@@ -96,8 +96,11 @@ class PathManager:
 # 正确率和损失值，并且根据选择的标准来选择最优模型
 # 保存和打印训练数据。在记录验证数据时会打印训练和
 # 验证信息
+#
+# 实质上不直接用于统计，而是作为统计器内核，被训
+# 练/测试的统计器进行调用
 #########################################
-class StatManager:
+class StatKernel:
     def __init__(self,
                  report_iter=100,
                  metric_num=1,
@@ -125,12 +128,17 @@ class StatManager:
         # 适配np的ndarray
         if isinstance(metric, np.ndarray):
             metric = metric.tolist()
-        self.MetricHist += metric
+        self.MetricHist += metric           # 对于多个metric，进行展平处理，存放在同一个list中
         self.LossHist.append(loss)
 
     def update(self, current_epoch):
+        '''
+        检查指标是否超过了best指标，是否可以更新模型
+        :param current_epoch: 进行检查时的epoch
+        :return: 指标是否被更新
+        '''
         if self.Criteria == 'metric':
-            best_recent_val = self.getRecentMetric()[self.CriteriaMetricIndex]
+            best_recent_val = self.getRecentMetric()[self.CriteriaMetricIndex]          # 使用index定位一个用于保存的唯一metric
             if best_recent_val > self.BestVal:
                 self.BestVal = best_recent_val
                 self.BestValEpoch = current_epoch
@@ -176,11 +184,18 @@ class StatManager:
         print(title, 'loss:', all_time_loss)
 
     def getRecentMetric(self):
+        '''
+        计算最近的metric值（根据report_iter计算）
+        '''
         n = self.MetricNum
         iter_len = self.ReportIter
         return [np.mean(self.MetricHist[-n*iter_len+i::n]) for i in range(n)]       # 取出最后iter_len个指标的平均值
 
     def getRecentLoss(self):
+        '''
+        计算最近的loss值（根据report_iter计算）
+        :return:
+        '''
         iter_len = self.ReportIter
         return np.mean(self.LossHist[-iter_len:])
 
@@ -205,8 +220,8 @@ class TrainStatManager:
                  criteria_metric_index=0,
                  metric_names=['Acc']):
 
-        self.TrainStat = StatManager(train_report_iter, metric_num, metric_names=metric_names)
-        self.ValStat = StatManager(val_report_iter, metric_num, criteria, criteria_metric_index, metric_names)
+        self.TrainStat = StatKernel(train_report_iter, metric_num, metric_names=metric_names)
+        self.ValStat = StatKernel(val_report_iter, metric_num, criteria, criteria_metric_index, metric_names)
 
         self.StatSavePath = stat_save_path
         self.ModelSavePath = model_save_path
@@ -226,6 +241,7 @@ class TrainStatManager:
         self.TrainIterCount += 1
 
     # 记录每一次validate的结果，自动化判断是否val是否结束进行打印
+    # 如果记录的总次数到达了report节点，便会调用更新检查，并打印出最近数据
     def recordVal(self, metric, loss, model):
         self.ValStat.record(metric, loss)
         self.ValIterCount += 1
@@ -303,7 +319,7 @@ class TestStatManager:
                  metric_num=1,
                  metric_names=['Acc']):
 
-        self.TestStat = StatManager(test_report_iter, metric_num, metric_names=metric_names)
+        self.TestStat = StatKernel(test_report_iter, metric_num, metric_names=metric_names)
         self.StatSavePath = stat_save_path
         self.Timer = StepTimer(total_steps=total_iter)
         self.TestIterCount = 0
