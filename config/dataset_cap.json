@@ -1,0 +1,22 @@
+{
+          "cluster":20,
+          "test":20,
+          "virushare-20-3gram":20,
+          "virushare-20-h3gram": 20,
+          "drebin_10":10,
+          "miniImageNet":600,
+          "virushare_20_image":20,
+          "virushare-10-seq": 10,
+          "virushare-10-3gram": 10,
+          "LargePE-80":80,
+          "virushare-20-3gram-tfidf": 20,
+          "virushare-20-3gram-rmsub": 20,
+          "virushare-20-3gram-tfrmsub": 20,
+          "LargePE-50-vt": 50,
+          "virushare-45": 45,
+          "virushare-45-rmsub": 45,
+          "HKS": 20,
+          "virushare-20-3gram-tfidf-general": 10,
+          "HKS-general": 10,
+          "virushare-45-general": 20
+}
