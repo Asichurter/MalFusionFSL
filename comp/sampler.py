@@ -15,7 +15,7 @@ class EpisodeSampler(Sampler):
         elif mode == 'query':
             start_idx, end_idx = k, k+qk
         else:
-            raise ValueError("mode = "+mode)
+            raise ValueError("[EpisodeSampler] Not supported mode: "+mode)
 
         for c, seed in zip(label_space, class_wise_seeds):
             perm = randPermutation(N, seed)

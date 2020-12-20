@@ -37,7 +37,7 @@ class VisdomPlot:
         if t == 'line':
             return self.Handle.line
         else:
-            raise NotImplementedError('暂未实现的类型:%d'%t)
+            raise NotImplementedError('[VisdomPlot] Not supported type: %s'%t)
 
 def plotLine(points_list,
              label_list,

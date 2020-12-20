@@ -15,7 +15,7 @@ class StepTimer:
 
     def step(self, prt=True, end=False):
         if not self.Lauched:
-            raise ValueError("Timer has not be lauched!")
+            raise ValueError("[StepTimer] Timer has not be lauched!")
 
         self.CurrentStep += 1
         now_time = time.time()

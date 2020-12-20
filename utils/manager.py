@@ -49,25 +49,25 @@ class PathManager:
     # 子集的api数据矩阵存储路径
     def apiData(self):
         if self.Subset == 'all':
-            raise ValueError("类型为all时无api数据文件")
+            raise ValueError("[PathManager] 类型为all时无api数据文件")
         return joinPath(self.Base, self.Dataset, 'data', self.Subset, 'api.npy')
 
     # 子集的img数据矩阵存储路径
     def imgData(self):
         if self.Subset == 'all':
-            raise ValueError("类型为all时无pe数据文件")
+            raise ValueError("[PathManager] 类型为all时无pe数据文件")
         return joinPath(self.Base, self.Dataset, 'data', self.Subset, 'img.npy')
 
     # 子集的api数据序列长度json存储路径
     def apiSeqLen(self):
         if self.Subset == 'all':
-            raise ValueError("类型为all时无api序列长度数据文件")
+            raise ValueError("[PathManager] 类型为all时无api序列长度数据文件")
         return joinPath(self.Base, self.Dataset, 'data', self.Subset, 'seq_length.json')
 
     # 子集的类下标到类名称的映射存储路径
     def subsdetIdxClassMapper(self):
         if self.Subset == 'all':
-            raise ValueError("类型为all时无“下标-类”映射数据文件")
+            raise ValueError("[PathManager] 类型为all时无“下标-类”映射数据文件")
         return joinPath(self.Base, self.Dataset, 'data', self.Subset, 'idx_mapping.json')
 
     # 返回model存储路径
