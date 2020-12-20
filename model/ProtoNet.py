@@ -24,9 +24,9 @@ class ProtoNet(BaseProtoModel):
                 metric='euc', return_embeddings=False):
 
         support_seqs, query_seqs, \
-        supprt_imgs, query_imgs = self._embed(support_seqs, query_seqs,
-                                              support_lens, query_lens,
-                                              supprt_imgs, query_imgs)
+        supprt_imgs, query_imgs = self.embed(support_seqs, query_seqs,
+                                             support_lens, query_lens,
+                                             supprt_imgs, query_imgs)
 
         # support seqs/imgs shape: [n, k, dim]
         # query seqs/imgs shape: [qk, dim]

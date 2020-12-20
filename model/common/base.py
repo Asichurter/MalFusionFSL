@@ -80,10 +80,10 @@ class BaseProtoModel(nn.Module):
         self.TaskParams = EpisodeTaskConfig(k, n, qk)
         self.ImageW = w
 
-    def _embed(self,
-               support_seqs, query_seqs,
-               support_lens, query_lens,
-               support_imgs, query_imgs):
+    def embed(self,
+              support_seqs, query_seqs,
+              support_lens, query_lens,
+              support_imgs, query_imgs):
 
         self._extractEpisodeTaskStruct(support_seqs, query_seqs,
                                        support_imgs, query_imgs)
