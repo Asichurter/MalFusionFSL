@@ -27,36 +27,60 @@
   ],
 
   "model": {
-    "modelName" :  "ConvProtoNet",
+    "modelName" :  "ProtoNet",
 
     "embedding": {
       "use_pretrained": true,
-      "embed_size": 300
+      "embed_size": 300,
+      "word_count": null
     },
 
     "conv_backbone": {
-      "conv_type": "conv-4",
-      "channels": [1,32,64,128,256],
-      "kernel_sizes": [3,3,3,3],
-      "padding_size": [1,1,1,1],
-      "strides": [2,1,1,1]
-    },
-
-    "LSTM": {
-      "bidirectional": true,
-      "hidden_size" : 128,
-      "layer_num" : 1,
-      "max_seq_len": 300,
-
-      "self_attention": {
-        "self_att_enable": false,
-        "self_att_type": "custom",
-        "self_att_dim": null,
-
-        "self_att_params": {
-          "multi_head_att_head_num": 4
+      "type": "conv-4",
+      "params": {
+        "conv-n": {
+          "channels": [1,32,64,128,256],
+          "kernel_sizes": [3,3,3,3],
+          "padding_sizes": [1,1,1,1],
+          "strides": [2,1,1,1],
+          "nonlinear": [true, true, true, false]
         }
       }
+    },
+
+    "sequence_backbone": {
+      "seq_type": "LSTM",
+      "max_seq_len": 300,
+
+      "LSTM": {
+        "bidirectional": true,
+        "hidden_size" : 128,
+        "layer_num" : 1,
+        "dropout": 0.5
+      },
+
+      "self_attention": {
+        "enabled": false,
+        "type": "custom",
+
+        "params": {
+          "self_att_dim": null,
+          "multi_head_att_head_num": 4
+        }
+      },
+
+      "temporal_conv": {
+        "enabled": true,
+
+        "params": {
+          "kernel_sizes": [3],
+          "paddings": [1],
+          "relus": [true],
+          "pools": ["ada"],
+          "bn": [true]
+        }
+      }
+
     },
 
     "regularization" : {
@@ -105,6 +129,7 @@
     "custom_lrs": {},
     "weight_decay": 5e-4,
     "task_batch": 2,
+
 
     "scheduler": {
       "lr_decay_iters": 15000,

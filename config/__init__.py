@@ -21,12 +21,19 @@ class EnvConfig:
         self.DatasetBasePath = cfg['DatasetBasePath']
         self.ReportPath = cfg['ReportPath']
 
-class TaskConfig:
-    def __init__(self, cfg):
+class EpisodeTaskConfig:
+    def __init__(self, k=None, n=None, qk=None):
+        self.k = k
+        self.n = n
+        self.qk = qk
 
-        self.k = cfg['task']['k']
-        self.n = cfg['task']['n']
-        self.qk = cfg['task']['qk']
+class TaskConfig:
+    def __init__(self, cfg=None):
+        k = cfg['task']['k']
+        n = cfg['task']['n']
+        qk = cfg['task']['qk']
+        self.epsiode = EpisodeTaskConfig(k, n, qk)
+
         self.dataset = cfg['task']['dataset']
         Ns = _loadJsonConfig(file_name="dataset_cap.json",
                              err_msg="没有合适的cap config文件相对路径")
@@ -56,14 +63,10 @@ class OptimizeConfig:
 class ParamsConfig:
     def __init__(self, cfg):
         self.ModelName = cfg['model']['model_name']
-        self.EmbedSize = cfg['model']['embedding']['embed_size']
-        self.UsePretrained = cfg['model']['embedding']['use_pretrained']
-        self.UseBiLstm = cfg['model']['LSTM']['bidirectional']
-        self.LstmHiddenSize = cfg['model']['LSTM']['hidden_size']
-        self.LstmLayerNum = cfg['model']['LSTM']['layer_num']
-        self.MaxSeqLen = cfg['model']['LSTM']['max_seq_len']
-        self.SelfAtt = cfg['model']['LSTM']['self_attention']
-        self.Dropout = cfg['model']['regularization']['dropout']
+        self.Embedding = cfg['model']['embedding']
+        self.SeqBackbone = cfg['model']['sequence_backbone']
+        self.ConvBackbone = cfg['model']['conv_backbone']
+        self.Regularization = cfg['model']['regularization']
         self.DataParallel = cfg['model']['data_parallel']
         self.ModelFeture = cfg['model']['model_feature']
         self.Cluster = cfg['model']['cluster']
@@ -87,7 +90,7 @@ def _loadJsonConfig(file_name, err_msg):
             return cfg
         except:
             continue
-    raise RuntimeError(err_msg)
+    raise RuntimeError("[ConfigInit] " + err_msg)
 
 def _loadEnv():
     system_node = platform.node()
