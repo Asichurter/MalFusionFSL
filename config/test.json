@@ -1,0 +1,23 @@
+{
+  "task": {
+    "dataset": "virushare-20-3gram-tfidf",
+
+    "k": 5,
+    "n": 5,
+    "qk": 15,
+
+    "version": 1,
+
+    "device_id": 3
+  },
+
+  "model_name" :  "ConvProtoNet",
+  "testing_epoch" : 5000,
+  "report_iter": 100,
+  "test_subset": "test",
+  "metrics": ["acc"],
+
+  "fine_tuning": {},
+
+  "description": []
+}
