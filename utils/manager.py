@@ -78,6 +78,14 @@ class PathManager:
     def doc(self):
         return joinPath(self.Base, 'doc', self.Version, is_dir=True)
 
+    # 存储训练时数据的文件路径
+    def trainStat(self):
+        return joinPath(self.Base, 'doc', self.Version, "train_stat.json")
+
+    # 存储测试时统计数据的文件路径
+    def testStat(self):
+        return joinPath(self.Base, 'doc', self.Version, "test_stat.json")
+
     # doc的根目录
     def docBase(self):
         return joinPath(self.Base, 'doc', is_dir=True)
