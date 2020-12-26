@@ -2,9 +2,18 @@ import visdom
 import numpy as np
 import matplotlib.pyplot as plt
 
-class VisdomPlot:
+class EmptyPlot:
+    def __init__(self):
+        pass
+
+    def update(self, title, x_val, y_val, update={'flag':False, 'val':None}):
+        # do nothing
+        pass
+
+class VisdomPlot(EmptyPlot):
 
     def __init__(self, env_title, types, titles, xlabels, ylabels, legends):
+        super().__init__()
         self.Handle = visdom.Visdom(env=env_title)
         self.Types = {title: type_ for title,type_ in zip(titles, types)}
         self.XLabels = {title: xlabel for title, xlabel in zip(titles, xlabels)}
