@@ -3,6 +3,13 @@ import numpy as np
 
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
+MetricSwitch = {
+    'acc': lambda _labels, _outs: accuracy_score(_labels, _outs),
+    'precision': lambda _labels, _outs: precision_score(_labels, _outs, average='macro'),
+    'recall': lambda _labels, _outs: recall_score(_labels, _outs, average='macro'),
+    'f1': lambda _labels, _outs: f1_score(_labels, _outs, average='macro')
+}
+
 class Metric:
     def __init__(self, n, expand=False):
         self.n = n
@@ -12,9 +19,10 @@ class Metric:
     def updateLabels(self, labels):
         self.Labels = labels
 
-    def stat(self, out, is_labels=False, acc_only=True):
+    def stat(self, out, is_labels=False, metrics=['acc']):
         n = self.n
-        labels = self.Labels
+        labels = self.Labels.cpu()
+        out = out.cpu()
 
         if not is_labels:
             if self.Expand:
@@ -26,14 +34,8 @@ class Metric:
 
         assert labels.size() == out.size()
 
-        acc = accuracy_score(labels, out)
-        precision = precision_score(labels, out, average='macro')
-        recall = recall_score(labels, out, average='macro')
-        f1 = f1_score(labels, out, average='macro')
+        metric_list = []
+        for metric in metrics:
+            metric_list.append(MetricSwitch[metric](labels, out))
 
-        metrics = np.array([acc, precision, recall, f1])
-
-        if acc_only:
-            return np.array([acc])          # 兼容多尺度输出，只有acc时也是一个array
-        else:
-            return metrics
+        return metrics
