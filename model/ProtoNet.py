@@ -1,32 +1,33 @@
 import torch.nn.functional as F
+import torch
 
 from utils.training import repeatProtoToCompShape, \
                             repeatQueryToCompShape, \
                             protoDisAdapter
 
 from model.common.base import BaseProtoModel
-from config import *
+import config
 from utils.manager import PathManager
 
 
 class ProtoNet(BaseProtoModel):
     def __init__(self,
-                 model_params: ParamsConfig,
+                 model_params: config.ParamsConfig,
                  path_manager: PathManager):
         super(BaseProtoModel).__init__(model_params, path_manager)
 
         self.DistTemp = model_params.More['temperature']
 
-    def forward(self,
-                support_seqs, query_seqs,
-                support_lens, query_lens,
-                supprt_imgs, query_imgs,
+    def forward(self,                       # forward接受所有可能用到的参数
+                support_seqs, support_imgs, support_lens, support_labels,
+                query_seqs, query_imgs, query_lens, query_labels,
+                loss_func,
                 metric='euc', return_embeddings=False):
 
         support_seqs, query_seqs, \
         supprt_imgs, query_imgs = self.embed(support_seqs, query_seqs,
                                              support_lens, query_lens,
-                                             supprt_imgs, query_imgs)
+                                             support_imgs, query_imgs)
 
         # support seqs/imgs shape: [n, k, dim]
         # query seqs/imgs shape: [qk, dim]
@@ -48,7 +49,9 @@ class ProtoNet(BaseProtoModel):
         if return_embeddings:
             return support_seqs, query_seqs.view(qk, -1), original_protos, F.log_softmax(similarity, dim=1)
 
-        return F.log_softmax(similarity, dim=1)
-
-
-
+        logits = F.log_softmax(similarity, dim=1),
+        return {
+            "logits": logits,
+            "loss": loss_func(logits, query_labels),
+            "predicts": None
+        }

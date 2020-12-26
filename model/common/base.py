@@ -6,13 +6,13 @@ from comp.nn.embedding.sequential import BiLstmEncoder
 from comp.nn.image.CNN import StackConv2D
 from comp.nn.reduction.CNN import CNNEncoder1D
 from comp.nn.reduction.selfatt import BiliAttnReduction
-from config import *
+import config
 from utils.manager import PathManager
 
 class BaseProtoModel(nn.Module):
 
     def __init__(self,
-                 model_params: ParamsConfig,
+                 model_params: config.ParamsConfig,
                  path_manager: PathManager):
         super(BaseProtoModel, self).__init__()
 
@@ -108,3 +108,10 @@ class BaseProtoModel(nn.Module):
             %(support_imgs.size(2),query_imgs.size(1))
 
         return support_seqs, query_seqs, support_imgs, query_imgs
+
+    def forward(self,                       # forward接受所有可能用到的参数
+                support_seqs, support_imgs, support_lens, support_labels,
+                query_seqs, query_imgs, query_lens, query_labels,
+                loss_func,
+                **kwargs):
+        raise NotImplementedError
