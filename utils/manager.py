@@ -72,31 +72,31 @@ class PathManager:
 
     # 返回model存储路径
     def model(self):
-        return joinPath(self.Base, 'models', self.ModelName)
+        return joinPath(self.Base, self.Dataset, 'models', self.ModelName)
 
     # 返回当前version的doc存储目录
     def doc(self):
-        return joinPath(self.Base, 'doc', self.Version, is_dir=True)
+        return joinPath(self.Base, self.Dataset, 'doc', str(self.Version), is_dir=True)
 
     # 存储训练时数据的文件路径
     def trainStat(self):
-        return joinPath(self.Base, 'doc', self.Version, "train_stat.json")
+        return joinPath(self.Base, self.Dataset, 'doc', str(self.Version), "train_stat.json")
 
     # 存储测试时统计数据的文件路径
     def testStat(self):
-        return joinPath(self.Base, 'doc', self.Version, "test_stat.json")
+        return joinPath(self.Base, self.Dataset, 'doc', str(self.Version), "test_stat.json")
 
     # doc的根目录
     def docBase(self):
-        return joinPath(self.Base, 'doc', is_dir=True)
+        return joinPath(self.Base, self.Dataset, 'doc', is_dir=True)
 
     # data的根目录
     def dataBase(self):
-        return joinPath(self.Base, 'data', is_dir=True)
+        return joinPath(self.Base, self.Dataset, 'data', is_dir=True)
 
     # 子集的data根目录
     def subDataBase(self):
-        return joinPath(self.Base, 'data', self.Subset, is_dir=True)
+        return joinPath(self.Base, self.Dataset, 'data', self.Subset, is_dir=True)
 
 
 #########################################
@@ -242,6 +242,7 @@ class TrainStatManager:
         self.ValReportIter = val_report_iter
 
     def begin(self):
+        self._printNextTip()
         self.Timer.begin()
 
     def recordTrain(self, metric, loss):

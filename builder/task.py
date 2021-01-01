@@ -27,6 +27,6 @@ def _regular_task(dataset,
 
     # TODO：默认不使用data_parallel
     return RegularEpisodeTask(k=task_params.Epsiode.k, qk=task_params.Epsiode.qk,
-                              n=task_params.Epsiode.n, N=task_params.Epsiode.N,
+                              n=task_params.Epsiode.n, N=task_params.N,
                               dataset=dataset, cuda=True,
                               label_expand=expand, parallel=None)

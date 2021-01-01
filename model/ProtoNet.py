@@ -13,34 +13,38 @@ from utils.manager import PathManager
 class ProtoNet(BaseProtoModel):
     def __init__(self,
                  model_params: config.ParamsConfig,
-                 path_manager: PathManager):
-        super(BaseProtoModel).__init__(model_params, path_manager)
+                 path_manager: PathManager,
+                 loss_func):
+        super().__init__(model_params, path_manager, loss_func)
 
         self.DistTemp = model_params.More['temperature']
 
     def forward(self,                       # forward接受所有可能用到的参数
                 support_seqs, support_imgs, support_lens, support_labels,
                 query_seqs, query_imgs, query_lens, query_labels,
-                loss_func,
                 metric='euc', return_embeddings=False):
 
         support_seqs, query_seqs, \
-        supprt_imgs, query_imgs = self.embed(support_seqs, query_seqs,
+        support_imgs, query_imgs = self.embed(support_seqs, query_seqs,
                                              support_lens, query_lens,
                                              support_imgs, query_imgs)
 
         # support seqs/imgs shape: [n, k, dim]
         # query seqs/imgs shape: [qk, dim]
-        dim = support_seqs.size(2)
+
         k, n, qk = self.TaskParams.k, self.TaskParams.n, self.TaskParams.qk
+
+        support_fused_features = support_seqs + support_imgs #torch.cat((support_seqs, support_imgs), dim=2)
+        query_fused_features = query_seqs + query_imgs #torch.cat((query_seqs, query_imgs), dim=1)
+        dim = support_fused_features.size(2)
 
         # 原型向量
         # shape: [n, dim]
-        original_protos = support_seqs.view(n, k, dim).mean(dim=1)
+        original_protos = support_fused_features.view(n, k, dim).mean(dim=1)
 
         # 整型成为可比较的形状: [qk, n, dim]
         protos = repeatProtoToCompShape(original_protos, qk, n)
-        rep_query = repeatQueryToCompShape(query_seqs, qk, n)
+        rep_query = repeatQueryToCompShape(query_fused_features, qk, n)
 
         similarity = protoDisAdapter(protos, rep_query, qk, n, dim,
                                      dis_type=metric,
@@ -49,9 +53,12 @@ class ProtoNet(BaseProtoModel):
         if return_embeddings:
             return support_seqs, query_seqs.view(qk, -1), original_protos, F.log_softmax(similarity, dim=1)
 
-        logits = F.log_softmax(similarity, dim=1),
+        logits = F.log_softmax(similarity, dim=1)
         return {
             "logits": logits,
-            "loss": loss_func(logits, query_labels),
+            "loss": self.LossFunc(logits, query_labels),
             "predicts": None
         }
+
+    def name(self):
+        return "ProtoNet"

@@ -13,9 +13,11 @@ class BaseProtoModel(nn.Module):
 
     def __init__(self,
                  model_params: config.ParamsConfig,
-                 path_manager: PathManager):
+                 path_manager: PathManager,
+                 loss_func):
         super(BaseProtoModel, self).__init__()
 
+        self.LossFunc = loss_func
         self.ModelParams = model_params
         self.TaskParams = None
         self.ImageW = None
@@ -75,9 +77,12 @@ class BaseProtoModel(nn.Module):
         k = support_seqs.size(0)
         n = support_seqs.size(1)
         qk = query_seqs.size(0)
-        w = support_imgs.size(2)
 
-        self.TaskParams = EpisodeTaskConfig(k, n, qk)
+        # support img shape: [n, k, 1, w, w]
+        # query img shape: [qk, 1, w, w]
+        w = query_imgs.size(2)
+
+        self.TaskParams = config.EpisodeTaskConfig(k, n, qk)
         self.ImageW = w
 
     def embed(self,
@@ -97,7 +102,7 @@ class BaseProtoModel(nn.Module):
         query_seqs = self._seqEmbed(query_seqs, query_lens)
 
         support_imgs = self._imgEmbed(support_imgs).view(n, k, -1)
-        query_imgs = self._imgEmbed(query_imgs)
+        query_imgs = self._imgEmbed(query_imgs).squeeze()
 
         assert support_seqs.size(2) == query_seqs.size(1), \
             "[BaseProtoModel.Embed] Support/query sequences' feature dimension size must match: (%d,%d)"\
@@ -115,3 +120,6 @@ class BaseProtoModel(nn.Module):
                 loss_func,
                 **kwargs):
         raise NotImplementedError
+
+    def name(self):
+        return "BaseProtoModel"

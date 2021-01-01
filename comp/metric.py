@@ -38,4 +38,4 @@ class Metric:
         for metric in metrics:
             metric_list.append(MetricSwitch[metric](labels, out))
 
-        return metrics
+        return np.array(metric_list)

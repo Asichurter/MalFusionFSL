@@ -37,9 +37,9 @@ class TaskConfig:
 
 class TrainingConfig:
     def __init__(self, cfg):
-        self.TrainEpoch = cfg['training']['epoch']
-        self.ValCycle = cfg['validate']['val_cycle']
-        self.ValEpisode = cfg['validate']['val_episode']
+        self.TrainEpoch = int(cfg['training']['epoch'])
+        self.ValCycle = int(cfg['validate']['val_cycle'])
+        self.ValEpisode = int(cfg['validate']['val_episode'])
         self.Criteria = cfg['validate']['early_stop']['criteria']
         self.SaveLatest = cfg['validate']['early_stop']['save_latest']
         self.Metrics = cfg['validate']['metrics']

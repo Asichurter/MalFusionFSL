@@ -6,7 +6,7 @@ magic = 7355608
 magic_list_size = 100000
 
 def magicSeed():
-    return (time()*100000000)%magic
+    return int((time()*100000000)%magic)
 
 def magicList():
     return [i for i in range(magic)]

@@ -6,7 +6,7 @@ from .structs import _loadJsonConfig
 from .const import *
 
 
-def _setCuda(task_config: TaskConfig):
+def _setCudaDevice(task_config: TaskConfig):
     if task_config.DeviceId is not None:
         os.environ["CUDA_VISIBLE_DEVICES"] = str(task_config.DeviceId)
 
@@ -30,7 +30,7 @@ test_cfg = _loadJsonConfig(file_name="test.json",
                            err_msg="没有合适的test config文件相对路径")
 test = TestConfig(test_cfg)
 
-_setCuda(task)
+_setCudaDevice(task)
 
 __all__ = ["env", "task", "train", "optimize", "params", "plot", "test"]
 

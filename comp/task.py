@@ -137,15 +137,19 @@ class RegularEpisodeTask(EpisodeTask):
         (query_seqs, query_imgs, query_lens, query_labels) = self._getEpisodeData(support_sampler, query_sampler)
         img_width, img_height = support_imgs.size()[-2:]
 
-        labels = self._taskLabelNormalize(support_labels, query_labels)
-        self.LabelsCache = labels
+        query_labels = self._taskLabelNormalize(support_labels, query_labels)
+        support_labels = self._taskLabelNormalize(support_labels, support_labels)
+        self.LabelsCache = query_labels
 
         if self.UseCuda:
             support_seqs = support_seqs.cuda()
             support_imgs = support_imgs.cuda()
             query_seqs = query_seqs.cuda()
             query_imgs = query_imgs.cuda()
-            labels = labels.cuda()
+
+            self.LabelsCache = query_labels.cuda()
+            support_labels = support_labels.cuda()
+            query_labels = query_labels.cuda()
 
         # if self.Parallel is not None:
         #     supports = supports.repeat((len(self.Parallel),1,1,1))
@@ -169,13 +173,13 @@ def batchSequence(data):
     seqs, imgs, lens, labels = [], [], [], []
 
     for seq, img, len_, label in data:
-        seqs.append(seq)
-        imgs.append(img)
+        seqs.append(seq.tolist())
+        imgs.append(img.tolist())
         lens.append(len_)
         labels.append(label)
 
     # 没有按照序列长度排序，需要在pack时设置enforce_sort = False
-    return seqs, imgs, lens, labels
+    return t.LongTensor(seqs), t.Tensor(imgs), lens, t.LongTensor(labels)
 
 if __name__ == '__main__':
     t = RegularEpisodeTask()
