@@ -13,11 +13,11 @@ def collectPEwithAPI(api_dir_path,
                      name_prefix=None,      # 后缀默认是json，因为要读取json文件
                      log_dump_path=None):
 
-    print("Preparing...")
+    print("[CollectPEwithAPI] Preparing...")
     pe_folder_map = {folder: os.listdir(pe_dir_path+folder) for folder in os.listdir(pe_dir_path)}
     reporter = Reporter()
 
-    print("Starting...")
+    print("[CollectPEwithAPI] Starting...")
     for folder in tqdm(os.listdir(api_dir_path)):
         folder_path = api_dir_path+folder+'/'
         if class_dir:

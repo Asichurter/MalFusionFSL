@@ -61,14 +61,15 @@ def _packDataFile(api_path,
     img_data_list = []
     folder_name_mapping = {}
 
-    print('Loading config data...')
+    print('[PackDataFile] Loading config data...')
     word2index = loadJson(w2idx_path)
 
-    print('Calculating image statistics...')
+    print('[PackDataFile] Calculating image statistics...')
     mean, std = _calculateImgMeanAndStd(img_path)
     transform = T.Compose([T.ToTensor(), T.Normalize([mean], [std])])
 
-    print('Read main data...')
+    item_name_list = []
+    print('[PackDataFile] Read main data...')
     for cls_idx, cls_dir in tqdm(enumerate(os.listdir(api_path))):
         api_folder_path = api_path + cls_dir + '/'
         img_folder_path = img_path + cls_dir + '/'
@@ -87,12 +88,14 @@ def _packDataFile(api_path,
             img = transform(Image.open(img_folder_path+img_item))
             # img_data_list = t.cat((img_data_list, t.unsqueeze(img, dim=0)), dim=0)
             img_data_list.append(img.tolist())
+            item_name_list.append(cls_dir+'/'+item)
 
         folder_name_mapping[cls_idx] = cls_dir
 
     img_data_list = img_data_list[0:]       # 丢掉初始化时填入的0占位
 
-    print('Converting...')
+    print('[PackDataFile] Converting...')
+    _checkSeqLen(api_data_list, item_name_list, len_thresh=10)
     api_data_list = _truncateAndMapTokenToIdx(api_data_list,
                                               word2index,
                                               max_seq_len)  # 转化为嵌入后的数值序列列表
@@ -109,7 +112,7 @@ def _packDataFile(api_path,
         zero_paddings = t.zeros((api_data_list.size(0),padding_size))
         api_data_list = t.cat((api_data_list, zero_paddings),dim=1)
 
-    print('Dumping...')
+    print('[PackDataFile] Dumping...')
     dumpJson(seq_length_list, seq_length_save_path)     # 存储序列长度到JSON文件
     if idx2cls_mapping_save_path is not None:
         dumpJson(folder_name_mapping, idx2cls_mapping_save_path)
@@ -117,7 +120,15 @@ def _packDataFile(api_path,
     t.save(t.LongTensor(api_data_list), api_data_save_path)                   # 存储填充后的数据文件
     t.save(t.FloatTensor(img_data_list), img_data_save_path)
 
-    print('Done')
+    print('[PackDataFile] Done')
+
+def _checkSeqLen(seqs, name_list, len_thresh=10):
+    flag = True
+    for i,s in enumerate(seqs):
+        if len(s) < len_thresh:
+            print(f"# {i}, {name_list[i]}, len={len(s)}")
+            flag = False
+    assert flag, "[PackDataFile] Sequence length check failed!"
 
 
 ##########################################################
@@ -127,9 +138,8 @@ def _packDataFile(api_path,
 def packAllSubsets(dataset,
                    num_per_class,
                    max_seq_len=300):
-
     for subset in ['train', 'validate', 'test']:
-        print("Packing", subset, "...")
+        print("[PackAllSubsets] Packing", subset, "...")
         pm = PathManager(dataset, subset)
         _packDataFile(api_path=pm.apiDataFolder(),
                       img_path=pm.imgDataFolder(),

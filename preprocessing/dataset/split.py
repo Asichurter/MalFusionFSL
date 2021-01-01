@@ -4,6 +4,7 @@ import os
 from tqdm import tqdm
 
 from utils.magic import magicSeed
+from utils.os import rmAll
 
 ##########################################################
 # 本文件是为了将数据集中的类进行随机抽样移动，可以用于数据集分割
@@ -51,14 +52,22 @@ def _redoSplit(src_path, dst_path, based_path):
 
 
 def splitDataset(dataset_path, validate_ratio=20, test_ratio=20):
-    print("Copy...")
+    print("[SplitDataset] Clearing...")
+    rmAll(dataset_path+'train/api/')
+    rmAll(dataset_path+'train/img/')
+    rmAll(dataset_path+'validate/api/')
+    rmAll(dataset_path+'validate/img/')
+    rmAll(dataset_path+'test/api/')
+    rmAll(dataset_path+'test/img/')
+
+    print("[SplitDataset] Copy...")
     _splitDatas(dataset_path+'all/api/', dataset_path+'train/api/', mode='c', ratio=-1, is_dir=True)
     _splitDatas(dataset_path+'all/img/', dataset_path+'train/img/', mode='c', ratio=-1, is_dir=True)
 
-    print("Splitting validate set...")
+    print("[SplitDataset] Splitting validate set...")
     _splitDatas(dataset_path+'train/api/', dataset_path+'validate/api/', mode='x', ratio=validate_ratio, is_dir=True)
     _redoSplit(dataset_path+'train/img/', dataset_path+'validate/img/', dataset_path+'validate/api/')
 
-    print("Splitting test set...")
+    print("[SplitDataset] Splitting test set...")
     _splitDatas(dataset_path+'train/api/', dataset_path+'test/api/', mode='x', ratio=test_ratio, is_dir=True)
     _redoSplit(dataset_path + 'train/img/', dataset_path + 'test/img/', dataset_path + 'test/api/')

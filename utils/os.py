@@ -1,3 +1,4 @@
+import os
 
 def joinPath(*ps, is_dir=False):
     ret = ""
@@ -9,3 +10,6 @@ def joinPath(*ps, is_dir=False):
         return ret + ps[-1] + '/'
     else:
         return ret + ps[-1]
+
+def rmAll(path):
+    assert os.system(f"rm -rf {path}/*") == 0, "Fail to run rmAll"
