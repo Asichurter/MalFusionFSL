@@ -34,8 +34,9 @@ class ProtoNet(BaseProtoModel):
 
         k, n, qk = self.TaskParams.k, self.TaskParams.n, self.TaskParams.qk
 
-        support_fused_features = support_seqs + support_imgs #torch.cat((support_seqs, support_imgs), dim=2)
-        query_fused_features = query_seqs + query_imgs #torch.cat((query_seqs, query_imgs), dim=1)
+        # 直接使用seq和img的raw output进行fuse
+        support_fused_features = self._fuse(support_seqs, support_imgs, fuse_dim=2)
+        query_fused_features = self._fuse(query_seqs, query_imgs, fuse_dim=1)
         dim = support_fused_features.size(2)
 
         # 原型向量
@@ -62,3 +63,6 @@ class ProtoNet(BaseProtoModel):
 
     def name(self):
         return "ProtoNet"
+
+    def _fuse(self, seq_features, img_features, fuse_dim=1):
+        return torch.cat((seq_features, img_features), dim=fuse_dim)

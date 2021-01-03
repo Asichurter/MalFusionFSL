@@ -123,3 +123,6 @@ class BaseProtoModel(nn.Module):
 
     def name(self):
         return "BaseProtoModel"
+
+    def _fuse(self, seq_features, img_features, **kwargs):
+        raise NotImplementedError
