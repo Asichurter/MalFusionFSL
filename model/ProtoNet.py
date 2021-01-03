@@ -22,7 +22,7 @@ class ProtoNet(BaseProtoModel):
     def forward(self,                       # forward接受所有可能用到的参数
                 support_seqs, support_imgs, support_lens, support_labels,
                 query_seqs, query_imgs, query_lens, query_labels,
-                metric='euc', return_embeddings=False):
+                epoch=None, metric='euc', return_embeddings=False):
 
         support_seqs, query_seqs, \
         support_imgs, query_imgs = self.embed(support_seqs, query_seqs,
@@ -65,4 +65,5 @@ class ProtoNet(BaseProtoModel):
         return "ProtoNet"
 
     def _fuse(self, seq_features, img_features, fuse_dim=1):
-        return torch.cat((seq_features, img_features), dim=fuse_dim)
+        return seq_features
+        # return torch.cat((seq_features, img_features), dim=fuse_dim)

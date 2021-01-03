@@ -63,7 +63,7 @@ for epoch in range(config.train.TrainEpoch):
     metrics = t.zeros((len(config.train.Metrics),)) # metric为了方便不使用cuda
     for i in range(config.optimize.TaskBatch):
         supports, querys = train_task.episode()
-        outs = model(*supports, *querys)
+        outs = model(*supports, *querys, epoch=epoch)
 
         loss_val += outs['loss']
         if outs['logits'] is not None:
@@ -89,7 +89,7 @@ for epoch in range(config.train.TrainEpoch):
         model.eval()
         for val_i in range(config.train.ValEpisode):
             val_supports, val_querys = val_task.episode()
-            val_outs = model(*val_supports, *val_querys)
+            val_outs = model(*val_supports, *val_querys, epoch=epoch)
 
             val_loss_val = val_outs['loss']
             if val_outs['logits'] is not None:

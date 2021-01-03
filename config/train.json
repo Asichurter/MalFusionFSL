@@ -1,10 +1,10 @@
 {
   "task": {
-    "dataset": "virushare-20-3gram-tfidf",
+    "dataset": "LargePE-Per35",
 
     "k": 5,
     "n": 5,
-    "qk": 15,
+    "qk": 5,
 
     "version": 1,
 
@@ -18,16 +18,17 @@
   "description": [
       "使用任务batch=2",
       "使用300维度的GloVe初始化",
-      "序列长度为200使用了tfidf的3Gram(最终分割)",
+      "序列长度为300",
       "提前终止的标准改为loss",
       "修改了数据集的存储方式，使得数据集中所有向量都是以最大序列长度存储",
       "使用1层BiLSTM编码,使用1dCNN解码",
-      "不使用LayerNorm",
+      "图像使用Conv-4",
       "初始学习率设置为1e-3"
   ],
 
   "model": {
     "model_name" :  "ProtoNet",
+    "feature_dim": null,
 
     "embedding": {
       "use_pretrained": true,
@@ -43,7 +44,7 @@
           "kernel_sizes": [3,3,3,3],
           "padding_sizes": [1,1,1,1],
           "strides": [2,1,1,1],
-          "nonlinear": [true, true, true, false]
+          "nonlinears": [true, true, true, false]
         }
       }
     },
@@ -114,7 +115,7 @@
 
   "validate": {
     "val_cycle": 100,
-    "val_episode": 100,
+    "val_episode": 50,
     "metrics": ["acc"],
 
     "early_stop": {
@@ -125,7 +126,7 @@
 
   "optimize": {
     "loss_function": "nll",
-    "optimizer": "sgd",
+    "optimizer": "adam",
     "default_lr": 1e-3,
     "custom_lrs": {},
     "weight_decay": 5e-4,

@@ -14,7 +14,7 @@ class BaseProtoModel(nn.Module):
     def __init__(self,
                  model_params: config.ParamsConfig,
                  path_manager: PathManager,
-                 loss_func):
+                 loss_func, **kwargs):
         super(BaseProtoModel, self).__init__()
 
         self.LossFunc = loss_func
@@ -55,20 +55,37 @@ class BaseProtoModel(nn.Module):
                                              **model_params.SeqBackbone['temporal_conv']['params'])
         else:
             raise NotImplementedError("[ModelInit] Self-attention part has not been implemented except for 'self-att' and 'temporal_conv'")
+
+        if model_params.FeatureDim is not None:
+            self.SeqTrans = nn.Sequential(nn.Linear(in_features=hidden_size, out_features=model_params.FeatureDim),
+                                          nn.BatchNorm1d(model_params.FeatureDim))
+        else:
+            self.SeqTrans = nn.Identity()
+
         # ------------------------------------------------------------------------------------------
 
         if model_params.ConvBackbone['type'] == 'conv-4':
             self.ImageEmbedding = StackConv2D(**model_params.ConvBackbone['params']['conv-n'])
 
+        if model_params.FeatureDim is not None:
+            # 此处默认卷积网络输出的维度是通道数量，即每个feature_map最终都reduce为1x1
+            self.ImgTrans = nn.Sequential(nn.Linear(in_features=model_params.ConvBackbone['params']['conv-n']['channels'][-1],
+                                                    out_features=model_params.FeatureDim),
+                                          nn.BatchNorm1d(model_params.FeatureDim))
+        else:
+            self.ImgTrans = nn.Identity()
 
     def _seqEmbed(self, x, lens=None):
         x = self.EmbedDrop(self.Embedding(x))
         x = self.SeqEncoder(x, lens=lens)
         x = self.SeqReduction(x, lens=lens)
+        x = self.SeqTrans(x)
         return x
 
     def _imgEmbed(self, x):
-        return self.ImageEmbedding(x)
+        x = self.ImageEmbedding(x).squeeze()
+        x = self.ImgTrans(x)
+        return x
 
     def _extractEpisodeTaskStruct(self,
                                   support_seqs, query_seqs,
