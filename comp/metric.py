@@ -21,8 +21,8 @@ class Metric:
 
     def stat(self, out, is_labels=False, metrics=['acc']):
         n = self.n
-        labels = self.Labels.cpu()
-        out = out.cpu()
+        labels = self.Labels.detach().cpu()
+        out = out.detach().cpu()
 
         if not is_labels:
             if self.Expand:

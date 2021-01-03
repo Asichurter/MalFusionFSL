@@ -47,16 +47,15 @@ optimizer = buildOptimizer(named_parameters=model.named_parameters(),
 scheduler = buildScheduler(optimizer=optimizer,
                            optimize_params=config.optimize)
 
-
+# 统计模型参数数量
 statParamNumber(model)
-stat.begin()
-
 # 保存运行配置文件
 saveConfigFile(folder_path=train_path_manager.doc(), model_name=config.params.ModelName)
 
-print("[train] Training starts !")
+print("\n\n[train] Training starts!")
+stat.begin()
 for epoch in range(config.train.TrainEpoch):
-    print("# %d epoch"%epoch)
+    # print("# %d epoch"%epoch)
 
     model.train()
 
@@ -84,7 +83,7 @@ for epoch in range(config.train.TrainEpoch):
 
     stat.recordTrain(metrics, loss_val.detach().item())
 
-    # TODO: validate
+    # validate
     if (epoch+1) % config.train.ValCycle == 0:
         print("validate at %d epoch"%(epoch+1))
         model.eval()
@@ -102,7 +101,7 @@ for epoch in range(config.train.TrainEpoch):
                                               is_labels=True,
                                               metrics=config.train.Metrics)
 
-            stat.recordVal(val_metrics, val_loss_val, model)
+            stat.recordVal(val_metrics, val_loss_val.detach().item(), model)
 
         train_metric, train_loss, val_metric, val_loss = stat.getRecentRecord(metric_idx=0)
         plot.update(title=config.train.Metrics[0], x_val=epoch+1, y_val=[[train_metric, val_metric]])
