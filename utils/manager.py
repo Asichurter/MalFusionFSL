@@ -167,12 +167,10 @@ class StatKernel:
         return True
 
     def printRecent(self, title, all_time=False, cache_recent=True):
-        print(title, end=' :')
         recent_metric = self.getRecentMetric()
         recent_loss = self.getRecentLoss()
         for i,name in enumerate(self.MetricNames):
-            print(f"{name}:{recent_metric[i]}", end=" ")
-        print()
+            print(f"{title} {name}: {recent_metric[i]}")
         print(title, 'loss:', recent_loss)
 
         if all_time:
@@ -268,7 +266,7 @@ class TrainStatManager:
             self._printSectionSeg()
             self.ValStat.printRecent(title='Val', all_time=False)
             self._printSectionSeg()
-            self.Timer.step(prt=True, end=False)
+            self.Timer.step(step_stride=self.TrainReportIter, prt=True, end=False)
             self._printBlockSeg()
             self._printNextTip()
 
@@ -293,7 +291,7 @@ class TrainStatManager:
         print('***********************************')
 
     def _printNextTip(self):
-        print('\n\n%d -> %d epoches...' % (self.TrainIterCount, self.TrainIterCount + self.TrainReportIter))
+        print('%d -> %d epoches...\n\n' % (self.TrainIterCount, self.TrainIterCount + self.TrainReportIter))
 
     # 用于绘制总体图时使用的压缩hist方法
     def getHistMetric(self, idx=0):
@@ -346,12 +344,12 @@ class TestStatManager:
             self._printBlockSeg()
             print('Final Statistics:')
             self.TestStat.printAllTime(title="Final Test")
-            self.Timer.step(prt=True, end=True)
+            self.Timer.step(step_stride=self.ReportIter, prt=True, end=True)
 
         elif self.TestIterCount % self.ReportIter == 0:
             print(self.TestIterCount, "Epoch")
             self.TestStat.printRecent(title="Test", all_time=True)
-            self.Timer.step(prt=True)
+            self.Timer.step(step_stride=self.ReportIter, prt=True)
 
     def _printBlockSeg(self):
         print('\n\n****************************************')

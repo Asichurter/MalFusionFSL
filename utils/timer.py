@@ -13,24 +13,25 @@ class StepTimer:
         self.Lauched = True
         self.BeginStep = self.LastStep = time.time()
 
-    def step(self, prt=True, end=False):
+    def step(self, step_stride, prt=True, end=False):
         if not self.Lauched:
             raise ValueError("[StepTimer] Timer has not be lauched!")
 
-        self.CurrentStep += 1
+        self.CurrentStep += step_stride
         now_time = time.time()
 
         cycle_time = now_time- self.LastStep
+        cycle_remained = (self.TotalSteps - self.CurrentStep) / step_stride
 
         if prt:
             print("Time consuming: %.2f" % cycle_time)
             if self.TotalSteps is not None:
-                remaining_time = cycle_time * (self.TotalSteps - self.CurrentStep)
+                remaining_time = cycle_time * cycle_remained
                 remaining_hour = remaining_time // 3600
                 remaining_min = (remaining_time % 3600) // 60
                 remaining_sec = (remaining_time % 60)
                 print('time remains:  %02d:%02d:%02d'%(remaining_hour, remaining_min, remaining_sec))
-                print("*"*50)
+                # print("*"*50)
 
         self.LastStep = now_time
 
