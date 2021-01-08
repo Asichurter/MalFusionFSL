@@ -1,5 +1,8 @@
+import sys
 
-from model.ProtoNet import ProtoNet
-import config
+sys.path.append('../')
+
+import model
+import builder
 
 print("- Done -")

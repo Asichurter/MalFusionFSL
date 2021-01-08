@@ -18,7 +18,7 @@ def buildStatManager(is_train,
                                    total_iter=train_config.TrainEpoch,
                                    metric_num=len(train_config.Metrics),
                                    criteria=train_config.Criteria,
-                                   criteria_metric_index=0,
+                                   criteria_metric_index=0,                 # 默认的metric_index是0
                                    metric_names=train_config.Metrics)
     else:
         if test_config is None:
