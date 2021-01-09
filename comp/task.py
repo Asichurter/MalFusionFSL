@@ -9,6 +9,8 @@ from comp.metric import Metric
 from utils.magic import magicSeed, randPermutation, randomList
 from comp.sampler import EpisodeSampler
 
+from utils.profiling import costTimeWithFuncName, ClassProfiler
+
 #########################################
 # 基于Episode训练的任务类，包含采样标签空间，
 # 采样实验样本，使用dataloader批次化序列样
@@ -20,11 +22,16 @@ from comp.sampler import EpisodeSampler
 #########################################
 class EpisodeTask:
     def __init__(self, k, qk, n, N, dataset, cuda=True,
-                 label_expand=False, parallel=None):
+                 label_expand=False, parallel=None,
+                 task_type=None):
         self.UseCuda = cuda
         self.Dataset = dataset
         self.Expand = label_expand
         self.Parallel = parallel
+
+        if task_type != None:
+            assert task_type in ['Train', 'Validate', 'Test']
+        self.TaskType = task_type
 
         assert k + qk <= N, '支持集和查询集采样总数大于了类中样本总数!'
         self.Params = {'k': k, 'qk': qk, 'n': n, 'N': N}
@@ -83,8 +90,9 @@ class EpisodeTask:
         # 将序列长度信息存储便于unpack
         self.SupSeqLenCache = support_lens
         self.QueSeqLenCache = query_lens
+        # 1.9 修复bug：updateLabels必须在标签归一化之后调用
         # 更新查询集标签到metric管理器中
-        self.Metric.updateLabels(query_labels)
+        # self.Metric.updateLabels(query_labels)
 
         return (support_seqs, support_imgs, support_lens, support_labels), \
                (query_seqs, query_imgs, query_lens, query_labels)
@@ -125,9 +133,11 @@ class EpisodeTask:
 ##########################################################
 class RegularEpisodeTask(EpisodeTask):
     def __init__(self, k, qk, n, N, dataset, cuda=True,
-                 label_expand=False, parallel=None):
-        super(RegularEpisodeTask, self).__init__(k, qk, n, N, dataset, cuda, label_expand, parallel)
+                 label_expand=False, parallel=None,
+                 task_type='Train'):
+        super(RegularEpisodeTask, self).__init__(k, qk, n, N, dataset, cuda, label_expand, parallel, task_type)
 
+    @ClassProfiler("episode")
     def episode(self, task_seed=None, sampling_seed=None):
         k, qk, n, N = self._readParams()
 
@@ -140,6 +150,8 @@ class RegularEpisodeTask(EpisodeTask):
         query_labels = self._taskLabelNormalize(support_labels, query_labels)
         support_labels = self._taskLabelNormalize(support_labels, support_labels)
         self.LabelsCache = query_labels
+        # 1.9修复bug：metric的labels必须在标签归一化之后更新
+        self.Metric.updateLabels(query_labels)
 
         if self.UseCuda:
             support_seqs = support_seqs.cuda()

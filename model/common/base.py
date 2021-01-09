@@ -21,6 +21,7 @@ class BaseProtoModel(nn.Module):
         self.ModelParams = model_params
         self.TaskParams = None
         self.ImageW = None
+        self.TaskType = ""
 
         # ------------------------------------------------------------------------------------------
         if model_params.Embedding['use_pretrained']:
@@ -118,18 +119,21 @@ class BaseProtoModel(nn.Module):
         support_seqs = self._seqEmbed(support_seqs, support_lens).view(n, k, -1)
         query_seqs = self._seqEmbed(query_seqs, query_lens)
 
-        support_imgs = self._imgEmbed(support_imgs).view(n, k, -1)
-        query_imgs = self._imgEmbed(query_imgs).squeeze()
+        # TODO: 测试序列效果，屏蔽img部分
+        # support_imgs = self._imgEmbed(support_imgs).view(n, k, -1)
+        # query_imgs = self._imgEmbed(query_imgs).squeeze()
 
         assert support_seqs.size(2) == query_seqs.size(1), \
             "[BaseProtoModel.Embed] Support/query sequences' feature dimension size must match: (%d,%d)"\
             %(support_seqs.size(2),query_seqs.size(1))
 
-        assert support_imgs.size(2) == query_imgs.size(1), \
-            "[BaseProtoModel.Embed] Support/query images' feature dimension size must match: (%d,%d)"\
-            %(support_imgs.size(2),query_imgs.size(1))
+        # TODO: 测试序列效果，屏蔽img部分
+        # assert support_imgs.size(2) == query_imgs.size(1), \
+        #     "[BaseProtoModel.Embed] Support/query images' feature dimension size must match: (%d,%d)"\
+        #     %(support_imgs.size(2),query_imgs.size(1))
 
-        return support_seqs, query_seqs, support_imgs, query_imgs
+        # TODO: 测试序列效果，屏蔽img部分
+        return support_seqs, query_seqs, None, None #support_imgs, query_imgs
 
     def forward(self,                       # forward接受所有可能用到的参数
                 support_seqs, support_imgs, support_lens, support_labels,
@@ -143,3 +147,15 @@ class BaseProtoModel(nn.Module):
 
     def _fuse(self, seq_features, img_features, **kwargs):
         raise NotImplementedError
+
+    def train_(self, mode=True):
+        self.TaskType = "Train"
+        super().train(mode)
+
+    def validate_(self):
+        self.TaskType = "Validate"
+        super().eval()
+
+    def test_(self):
+        self.TaskType = "Test"
+        super().eval()

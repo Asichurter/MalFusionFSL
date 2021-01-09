@@ -30,8 +30,8 @@ val_dataset = FusionDataset(val_path_manager.apiData(),
                               config.task.N)
 
 print('[train] building components...')
-train_task = buildTask(train_dataset, config.task, config.params, config.optimize)
-val_task = buildTask(val_dataset, config.task, config.params, config.optimize)
+train_task = buildTask(train_dataset, config.task, config.params, config.optimize, "Train")
+val_task = buildTask(val_dataset, config.task, config.params, config.optimize, "Validate")
 
 stat = buildStatManager(is_train=True,
                         path_manager=train_path_manager,
@@ -57,7 +57,7 @@ stat.begin()
 for epoch in range(config.train.TrainEpoch):
     # print("# %d epoch"%epoch)
 
-    model.train()
+    model.train_()
 
     loss_val = t.zeros((1,)).cuda()                 # loss需要cuda以保证优化时加速
     metrics = t.zeros((len(config.train.Metrics),)) # metric为了方便不使用cuda
@@ -74,6 +74,7 @@ for epoch in range(config.train.TrainEpoch):
             metrics += train_task.metrics(outs['predicts'],
                                           is_labels=True,
                                           metrics=config.train.Metrics)
+
     loss_val /= config.optimize.TaskBatch
     metrics /= config.optimize.TaskBatch
 
@@ -86,7 +87,7 @@ for epoch in range(config.train.TrainEpoch):
     # validate
     if (epoch+1) % config.train.ValCycle == 0:
         print("validate at %d epoch"%(epoch+1))
-        model.eval()
+        model.validate_()
         for val_i in range(config.train.ValEpisode):
             val_supports, val_querys = val_task.episode()
             val_outs = model(*val_supports, *val_querys, epoch=epoch)

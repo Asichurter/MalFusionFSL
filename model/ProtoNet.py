@@ -8,6 +8,7 @@ from utils.training import repeatProtoToCompShape, \
 from model.common.base import BaseProtoModel
 import config
 from utils.manager import PathManager
+from utils.profiling import ClassProfiler
 
 
 class ProtoNet(BaseProtoModel):
@@ -19,10 +20,15 @@ class ProtoNet(BaseProtoModel):
 
         self.DistTemp = model_params.More['temperature']
 
+    @ClassProfiler("ProtoNet.forward")
     def forward(self,                       # forward接受所有可能用到的参数
                 support_seqs, support_imgs, support_lens, support_labels,
                 query_seqs, query_imgs, query_lens, query_labels,
                 epoch=None, metric='euc', return_embeddings=False):
+
+        # if self.TaskType == "Validate":
+        #     print("- Validate.ProtoNet.forward called")
+        # print(f"$ {self.TaskType}.ProtoNet.forward called")
 
         support_seqs, query_seqs, \
         support_imgs, query_imgs = self.embed(support_seqs, query_seqs,
