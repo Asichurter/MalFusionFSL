@@ -34,6 +34,10 @@ _setCudaDevice(task)
 
 __all__ = ["env", "task", "train", "optimize", "params", "plot", "test"]
 
-def printConfig():
-    pass
+def printRunConfigSummary(task_config: TaskConfig=task, model_config: ParamsConfig=params):
+    print("**************************************************")
+    print(f"{model_config.ModelName} {task_config.Dataset} ver.{task_config.Version}")
+    print(f"n:k:qk = {task_config.Episode.n}/{task_config.Episode.k}/{task_config.Episode.qk}")
+    print(f"Cuda: {task_config.DeviceId}")
+    print("**************************************************")
 

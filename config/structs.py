@@ -26,7 +26,7 @@ class TaskConfig:
         k = cfg['task']['k']
         n = cfg['task']['n']
         qk = cfg['task']['qk']
-        self.Epsiode = EpisodeTaskConfig(k, n, qk)
+        self.Episode = EpisodeTaskConfig(k, n, qk)
 
         self.Dataset = cfg['task']['dataset']
         Ns = _loadJsonConfig(file_name="datcap.json",

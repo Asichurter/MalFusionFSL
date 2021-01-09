@@ -114,7 +114,7 @@ class StatKernel:
                  metric_num=1,
                  criteria = "metric",
                  criteria_metric_index=0,
-                 metric_names=['Acc']):
+                 metric_names=['acc']):
 
         self.MetricHist = []
         self.LossHist = []
@@ -124,7 +124,7 @@ class StatKernel:
         self.Criteria = criteria
         self.BestVal = float('inf') if criteria=='loss' else -1.
         self.BestValEpoch = -1
-        self.ReportIter =report_iter
+        self.ReportIter = report_iter
 
         self.RecMetricCache = None
         self.RecLossCache = None
@@ -188,6 +188,9 @@ class StatKernel:
             print(f"{name}:{all_time_metric[i]}", end=" ")
         print()
         print(title, 'loss:', all_time_loss)
+
+    def printBest(self, title):
+        print(f"Best {title} {self.MetricNames[self.CriteriaMetricIndex]}: {self.BestVal} (at {self.BestValEpoch} epoch)")
 
     def getRecentMetric(self):
         '''
@@ -265,6 +268,7 @@ class TrainStatManager:
             self.TrainStat.printRecent(title='Train', all_time=False)
             self._printSectionSeg()
             self.ValStat.printRecent(title='Val', all_time=False)
+            self.ValStat.printBest(title='Val')
             self._printSectionSeg()
             self.Timer.step(step_stride=self.TrainReportIter, prt=True, end=False)
             self._printBlockSeg()
@@ -292,6 +296,8 @@ class TrainStatManager:
 
     def _printNextTip(self):
         print('%d -> %d epoches...\n\n' % (self.TrainIterCount, self.TrainIterCount + self.TrainReportIter))
+        # 打印运行任务的摘要
+        config.printRunConfigSummary()
 
     # 用于绘制总体图时使用的压缩hist方法
     def getHistMetric(self, idx=0):
