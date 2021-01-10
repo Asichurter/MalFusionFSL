@@ -12,4 +12,6 @@ def joinPath(*ps, is_dir=False):
         return ret + ps[-1]
 
 def rmAll(path):
+    if path[-1] == '/':
+        path = path[:-1]
     assert os.system(f"rm -rf {path}/*") == 0, "Fail to run rmAll"

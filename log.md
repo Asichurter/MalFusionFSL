@@ -4,3 +4,10 @@
 - 解决了validate时显存占用过多爆炸的问题
 - ProtoNet基线测试：cat_fuse + 投影矩阵 + batchNorm/dropout 均会导致距离爆炸，最终结果nan
 - 只使用seq特征，sgd优化太慢，改用adam，loss降到1时，acc甚至不到0.2，说明计算可能有问题
+
+## 1.9
+- 修复了因为metric的label_cache没有在query标签归一化之后再更新，导致的metric计算有误的bug。修复后metric值恢复正常
+- 训练速度较慢，存在问题，相同条件下原项目只用序列只用20s，此处需要两倍时间40s
+    - 问题已修复：img部分的episode采样时间消耗过长（可能是collect时的tolist导致）。隔离数据源解决
+- 存在训练时loss异常过高的问题，该问题导致即使是adam优化，训练过程也会在训练正确率在70%时停止拟合，经过debug已发现similarity
+    部分的的距离尺度较大，该问题导致在softmax时分布直接变为长尾分布

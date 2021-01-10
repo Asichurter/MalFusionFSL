@@ -6,7 +6,7 @@ from preprocessing.word_embedding import trainGloVe
 from preprocessing.dataset.structure import makeDatasetDirStruct
 from preprocessing.dataset.rename import renamePEbyMD5fromApi
 from preprocessing.image import convertDir2Image, convert
-from preprocessing.dataset.split import splitDataset
+from preprocessing.dataset.split import *
 from preprocessing.pack import packAllSubsets
 from utils.manager import PathManager
 
@@ -33,10 +33,10 @@ from utils.manager import PathManager
 #                     log_file_path="/home/omnisky/NewAsichurter/FusionData/reports/class_stat_after_processing_log.json",
 #                     num_per_class=35)
 #
-trainGloVe(base_path='/home/omnisky/NewAsichurter/FusionData/datasets/',
-           dataset='LargePE-Per35',
-           size=300,
-           type='all')
+# trainGloVe(base_path='/home/omnisky/NewAsichurter/FusionData/datasets/',
+#            dataset='LargePE-Per35',
+#            size=300,
+#            type='all')
 
 # renamePEbyMD5fromApi(api_dir_path='/home/omnisky/NewAsichurter/FusionData/datasets/LargePE-Per40/all/api/',
 #                      pe_dir_path='/home/omnisky/NewAsichurter/FusionData/datasets/LargePE-Per40/all/pe/')
@@ -44,10 +44,12 @@ trainGloVe(base_path='/home/omnisky/NewAsichurter/FusionData/datasets/',
 # convertDir2Image(dir_path='/home/omnisky/NewAsichurter/FusionData/datasets/LargePE-Per40/PEs/',
 #                  dst_path='/home/omnisky/NewAsichurter/FusionData/datasets/LargePE-Per40/all/img/')
 
-splitDataset(dataset_path='/home/omnisky/NewAsichurter/FusionData/datasets/LargePE-Per35/',
-             validate_ratio=30,
-             test_ratio=30)
+# splitDataset(dataset_path='/home/omnisky/NewAsichurter/FusionData/datasets/LargePE-Per35/',
+#              validate_ratio=30,
+#              test_ratio=30)
 
+pm = PathManager(dataset="LargePE-Per35")
+revertDatasetSplit(dataset="LargePE-Per35", dump_path=pm.dataBase()+"split_v1.json")
 packAllSubsets("LargePE-Per35", num_per_class=35, max_seq_len=300)
 
 
