@@ -190,7 +190,13 @@ class StatKernel:
         print(title, 'loss:', all_time_loss)
 
     def printBest(self, title):
-        print(f"Best {title} {self.MetricNames[self.CriteriaMetricIndex]}: {self.BestVal} (at {self.BestValEpoch} epoch)")
+        if self.Criteria == "metric":
+            name = self.MetricNames[self.CriteriaMetricIndex]
+        elif self.Criteria == "loss":
+            name = "loss"
+        else:
+            raise ValueError(f"[printBest] 非法的Criteria值: {self.Criteria}")
+        print(f"Best {title} {name}: {self.BestVal} (at {self.BestValEpoch} epoch)")
 
     def getRecentMetric(self):
         '''
@@ -264,6 +270,7 @@ class TrainStatManager:
             if self.SaveLastestModelFlag and self.ModelSavePath is not None:
                 t.save(model.state_dict(), self.ModelSavePath+'_latest')
 
+            self._printTaskSummary()
             self._printBlockSeg()
             self.TrainStat.printRecent(title='Train', all_time=False)
             self._printSectionSeg()
@@ -288,6 +295,10 @@ class TrainStatManager:
         if self.StatSavePath is not None:
             dumpJson(res, self.StatSavePath)
 
+    def _printTaskSummary(self):
+        # 打印运行任务的摘要
+        config.printRunConfigSummary()
+
     def _printSectionSeg(self):
         print('----------------------------------')
 
@@ -296,8 +307,6 @@ class TrainStatManager:
 
     def _printNextTip(self):
         print('%d -> %d epoches...\n\n' % (self.TrainIterCount, self.TrainIterCount + self.TrainReportIter))
-        # 打印运行任务的摘要
-        config.printRunConfigSummary()
 
     # 用于绘制总体图时使用的压缩hist方法
     def getHistMetric(self, idx=0):
