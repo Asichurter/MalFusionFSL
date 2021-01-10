@@ -5,7 +5,7 @@ sys.path.append('../')
 import config
 from utils.version import saveConfigFile
 from utils.manager import *
-from comp.dataset import FusionDataset
+from comp.dataset import FusedDataset
 from builder import *
 from utils.stat import statParamNumber
 from utils.plot import plotLine
@@ -20,14 +20,16 @@ val_path_manager = PathManager(dataset=config.task.Dataset,
                                model_name=config.params.ModelName,
                                version=config.task.Version)
 
-train_dataset = FusionDataset(train_path_manager.apiData(),
+train_dataset = FusedDataset(train_path_manager.apiData(),
                               train_path_manager.imgData(),
                               train_path_manager.apiSeqLen(),
-                              config.task.N)
-val_dataset = FusionDataset(val_path_manager.apiData(),
+                              config.task.N,
+                             config.train.DataSource)
+val_dataset = FusedDataset(val_path_manager.apiData(),
                               val_path_manager.imgData(),
                               val_path_manager.apiSeqLen(),
-                              config.task.N)
+                              config.task.N,
+                           config.train.DataSource)
 
 print('[train] building components...')
 train_task = buildTask(train_dataset, config.task, config.params, config.optimize, "Train")

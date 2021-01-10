@@ -12,18 +12,21 @@
   },
 
   "training": {
-    "epoch": 3e4
+    "epoch": 40000,
+    "data_source": [
+      "sequence"
+    ]
   },
 
   "description": [
       "使用任务batch=2",
       "使用300维度的GloVe初始化",
       "序列长度为300",
-      "提前终止的标准改为loss",
-      "修改了数据集的存储方式，使得数据集中所有向量都是以最大序列长度存储",
+      "提前终止的标准为loss",
+      "使用adam优化，训练周期延长至4e4",
       "使用1层BiLSTM编码,使用1dCNN解码",
-      "图像使用Conv-4",
-      "初始学习率设置为1e-3"
+      "只使用sequence数据",
+      "初始学习率为1e-3"
   ],
 
   "model": {
@@ -126,7 +129,7 @@
 
   "optimize": {
     "loss_function": "nll",
-    "optimizer": "adam",
+    "optimizer": "sgd",
     "default_lr": 1e-3,
     "custom_lrs": {},
     "weight_decay": 5e-4,

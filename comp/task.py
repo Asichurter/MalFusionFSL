@@ -8,8 +8,8 @@ import time
 from comp.metric import Metric
 from utils.magic import magicSeed, randPermutation, randomList
 from comp.sampler import EpisodeSampler
-
 from utils.profiling import costTimeWithFuncName, ClassProfiler
+from comp.dataset import FusedDataset
 
 #########################################
 # 基于Episode训练的任务类，包含采样标签空间，
@@ -21,13 +21,14 @@ from utils.profiling import costTimeWithFuncName, ClassProfiler
 # 调用accuracy计算得到正确率
 #########################################
 class EpisodeTask:
-    def __init__(self, k, qk, n, N, dataset, cuda=True,
+    def __init__(self, k, qk, n, N, dataset: FusedDataset, cuda=True,
                  label_expand=False, parallel=None,
-                 task_type=None):
+                 task_type=None, data_source=None):
         self.UseCuda = cuda
         self.Dataset = dataset
         self.Expand = label_expand
         self.Parallel = parallel
+        self.DataSource = data_source
 
         if task_type != None:
             assert task_type in ['Train', 'Validate', 'Test']
@@ -52,10 +53,21 @@ class EpisodeTask:
         return k, qk, n, N
 
     def _getLabelSpace(self, seed=None):
+        # n = self.Params['n']
+        # seed = magicSeed() if seed is None else seed
+        # self.TaskSeedCache = seed
+        #
+        # sampled_classes = randPermutation(self.Dataset.TotalClassNum, seed)[:n]
+        #
+        # # print('label space: ', sampled_classes)
+        # return sampled_classes
+
         seed = magicSeed() if seed is None else seed
         self.TaskSeedCache = seed
 
-        sampled_classes = randPermutation(self.Dataset.TotalClassNum, seed)
+        rd.seed(seed)
+        classes_list = [i for i in range(self.Dataset.TotalClassNum)]
+        sampled_classes = rd.sample(classes_list, self.Params['n'])
 
         # print('label space: ', sampled_classes)
         return sampled_classes
@@ -79,20 +91,21 @@ class EpisodeTask:
     def _getEpisodeData(self, support_sampler, query_sampler):
         k, qk, n, N = self._readParams()
 
-        support_loader = DataLoader(self.Dataset, batch_size=k * n,
-                                    sampler=support_sampler, collate_fn=batchSequence)#getBatchSequenceFunc())
-        query_loader = DataLoader(self.Dataset, batch_size=qk * n,
-                                  sampler=query_sampler, collate_fn=batchSequence)#getBatchSequenceFunc())
+        # support_loader = DataLoader(self.Dataset, batch_size=k * n,
+        #                             sampler=support_sampler, collate_fn=batchSequence)#getBatchSequenceFunc())
+        # query_loader = DataLoader(self.Dataset, batch_size=qk * n,
+        #                           sampler=query_sampler, collate_fn=batchSequence)#getBatchSequenceFunc())
+        #
+        # support_seqs, support_imgs, support_lens, support_labels = support_loader.__iter__().next()
+        # query_seqs, query_imgs, query_lens, query_labels = query_loader.__iter__().next()
+        #
 
-        support_seqs, support_imgs, support_lens, support_labels = support_loader.__iter__().next()
-        query_seqs, query_imgs, query_lens, query_labels = query_loader.__iter__().next()
+        support_seqs, support_imgs, support_lens, support_labels = self.Dataset.sample(support_sampler, batch_size=k*n)
+        query_seqs, query_imgs, query_lens, query_labels = self.Dataset.sample(query_sampler, batch_size=qk*n)
 
         # 将序列长度信息存储便于unpack
         self.SupSeqLenCache = support_lens
         self.QueSeqLenCache = query_lens
-        # 1.9 修复bug：updateLabels必须在标签归一化之后调用
-        # 更新查询集标签到metric管理器中
-        # self.Metric.updateLabels(query_labels)
 
         return (support_seqs, support_imgs, support_lens, support_labels), \
                (query_seqs, query_imgs, query_lens, query_labels)
@@ -137,7 +150,7 @@ class RegularEpisodeTask(EpisodeTask):
                  task_type='Train'):
         super(RegularEpisodeTask, self).__init__(k, qk, n, N, dataset, cuda, label_expand, parallel, task_type)
 
-    @ClassProfiler("episode")
+    # @ClassProfiler("episode")
     def episode(self, task_seed=None, sampling_seed=None):
         k, qk, n, N = self._readParams()
 
@@ -145,7 +158,6 @@ class RegularEpisodeTask(EpisodeTask):
         support_sampler, query_sampler = self._getTaskSampler(label_space, sampling_seed)
         (support_seqs, support_imgs, support_lens, support_labels), \
         (query_seqs, query_imgs, query_lens, query_labels) = self._getEpisodeData(support_sampler, query_sampler)
-        img_width, img_height = support_imgs.size()[-2:]
 
         query_labels = self._taskLabelNormalize(support_labels, query_labels)
         support_labels = self._taskLabelNormalize(support_labels, support_labels)
@@ -154,24 +166,27 @@ class RegularEpisodeTask(EpisodeTask):
         self.Metric.updateLabels(query_labels)
 
         if self.UseCuda:
-            support_seqs = support_seqs.cuda()
-            support_imgs = support_imgs.cuda()
-            query_seqs = query_seqs.cuda()
-            query_imgs = query_imgs.cuda()
+            support_seqs = support_seqs.cuda() if support_seqs is not None else None
+            support_imgs = support_imgs.cuda() if support_imgs is not None else None
+            query_seqs = query_seqs.cuda() if query_seqs is not None else None
+            query_imgs = query_imgs.cuda() if query_imgs is not None else None
 
-            self.LabelsCache = query_labels.cuda()
-            support_labels = support_labels.cuda()
             query_labels = query_labels.cuda()
+            support_labels = support_labels.cuda()
+            self.LabelsCache = query_labels
 
         # if self.Parallel is not None:
         #     supports = supports.repeat((len(self.Parallel),1,1,1))
         #     self.SupSeqLenCache = [self.SupSeqLenCache]*len(self.Parallel)
 
         # 重整数据结构，便于模型读取任务参数
-        support_seqs = support_seqs.view(n, k, -1)
-        support_imgs = support_imgs.view(n, k, 1, img_width, img_height)
-        query_seqs = query_seqs.view(n*qk, -1)
-        query_imgs = query_imgs.view(n*qk, 1, img_width, img_height)    # 注意，此处的qk指每个类中的查询样本个数，并非查询集长度
+        if support_seqs is not None:
+            support_seqs = support_seqs.view(n, k, -1)
+            query_seqs = query_seqs.view(n * qk, -1)
+        if support_imgs is not None:
+            img_width, img_height = support_imgs.size()[-2:]
+            support_imgs = support_imgs.view(n, k, 1, img_width, img_height)
+            query_imgs = query_imgs.view(n*qk, 1, img_width, img_height)    # 注意，此处的qk指每个类中的查询样本个数，并非查询集长度
 
         return (support_seqs, support_imgs, support_lens, support_labels), \
                (query_seqs, query_imgs, query_lens, query_labels)
@@ -190,7 +205,7 @@ def batchSequence(data):
         lens.append(len_)
         labels.append(label)
 
-    # 没有按照序列长度排序，需要在pack时设置enforce_sort = False
+
     return t.LongTensor(seqs), t.Tensor(imgs), lens, t.LongTensor(labels)
 
 if __name__ == '__main__':

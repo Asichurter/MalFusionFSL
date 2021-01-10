@@ -20,20 +20,16 @@ class ProtoNet(BaseProtoModel):
 
         self.DistTemp = model_params.More['temperature']
 
-    @ClassProfiler("ProtoNet.forward")
+    # @ClassProfiler("ProtoNet.forward")
     def forward(self,                       # forward接受所有可能用到的参数
                 support_seqs, support_imgs, support_lens, support_labels,
                 query_seqs, query_imgs, query_lens, query_labels,
                 epoch=None, metric='euc', return_embeddings=False):
 
-        # if self.TaskType == "Validate":
-        #     print("- Validate.ProtoNet.forward called")
-        # print(f"$ {self.TaskType}.ProtoNet.forward called")
-
         support_seqs, query_seqs, \
         support_imgs, query_imgs = self.embed(support_seqs, query_seqs,
-                                             support_lens, query_lens,
-                                             support_imgs, query_imgs)
+                                              support_lens, query_lens,
+                                              support_imgs, query_imgs)
 
         # support seqs/imgs shape: [n, k, dim]
         # query seqs/imgs shape: [qk, dim]
