@@ -5,6 +5,8 @@ from tqdm import tqdm
 
 from utils.magic import magicSeed
 from utils.os import rmAll
+from utils.file import loadJson, dumpJson
+from utils.manager import PathManager
 
 ##########################################################
 # 本文件是为了将数据集中的类进行随机抽样移动，可以用于数据集分割
@@ -71,3 +73,51 @@ def splitDataset(dataset_path, validate_ratio=20, test_ratio=20):
     print("[SplitDataset] Splitting test set...")
     _splitDatas(dataset_path+'train/api/', dataset_path+'test/api/', mode='x', ratio=test_ratio, is_dir=True)
     _redoSplit(dataset_path + 'train/img/', dataset_path + 'test/img/', dataset_path + 'test/api/')
+
+
+##########################################################
+# 本函数用于将训练集，验证集和测试集的数据集分割详情保存到JSON文件
+# 以便复现出实验结果
+##########################################################
+def dumpDatasetSplitStruct(base_path, dump_path, desc: list):
+    dump = {"desc": desc}
+    for split in ['train', 'validate', 'test']:
+        print(f"[dumpDatasetSplitStruct] {split}")
+        folders = []
+
+        for folder in os.listdir(base_path+split+'/api'):   # 以api文件夹的为标准
+            folders.append(folder)
+
+        dump[split] = folders
+
+    dumpJson(dump, dump_path)
+    print('-- Done --')
+
+##########################################################
+# 本函数用于删除原有数据集train，validate和test文件夹中的数据
+##########################################################
+def deleteDatasetSplit(dataset_base):
+    for typ in ['train','validate','test']:
+        print(f"[deleteDatasetSplit] {typ}")
+        rmAll(dataset_base+typ+'/api')
+        rmAll(dataset_base+typ+'/img')
+
+##########################################################
+# 本函数用于将训练集，验证集和测试集的数据集分割详情根据保存的JSON文件
+# 还原到数据集分隔文件夹中。
+##########################################################
+def revertDatasetSplit(dataset, dump_path):
+    man = PathManager(dataset)
+    split_dump = loadJson(dump_path)
+
+    deleteDatasetSplit(man.datasetBase())
+
+    for typ in ['train', 'validate', 'test']:
+        print(f"[revertDatasetSplit] {typ}")
+        for folder in split_dump[typ]:
+            shutil.copytree(src=man.datasetBase()+'all/api/'+folder+'/',
+                            dst=man.datasetBase()+typ+'/api/'+folder+'/')
+            shutil.copytree(src=man.datasetBase()+'all/img/'+folder+'/',
+                            dst=man.datasetBase()+typ+'/img/'+folder+'/')
+
+    print('-- Done --')
