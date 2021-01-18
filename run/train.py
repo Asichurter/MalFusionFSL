@@ -36,6 +36,7 @@ train_task = buildTask(train_dataset, config.task, config.params, config.optimiz
 val_task = buildTask(val_dataset, config.task, config.params, config.optimize, "Validate")
 
 stat = buildStatManager(is_train=True,
+                        task_config=config.task,
                         path_manager=train_path_manager,
                         train_config=config.train)
 
@@ -52,7 +53,9 @@ scheduler = buildScheduler(optimizer=optimizer,
 # 统计模型参数数量
 statParamNumber(model)
 # 保存运行配置文件
-saveConfigFile(folder_path=train_path_manager.doc(), model_name=config.params.ModelName)
+saveConfigFile(folder_path=train_path_manager.doc(),
+               dataset_base=train_path_manager.datasetBase(),
+               model_name=config.params.ModelName)
 
 print("\n\n[train] Training starts!")
 stat.begin()
@@ -60,9 +63,11 @@ for epoch in range(config.train.TrainEpoch):
     # print("# %d epoch"%epoch)
 
     model.train_()
+    # 1.17修复：梯度没有归0导致优化进行时梯度累计
+    model.zero_grad()
 
     loss_val = t.zeros((1,)).cuda()                 # loss需要cuda以保证优化时加速
-    metrics = t.zeros((len(config.train.Metrics),)) # metric为了方便不使用cuda
+    metrics = np.zeros((len(config.train.Metrics),))
     for i in range(config.optimize.TaskBatch):
         supports, querys = train_task.episode()
         outs = model(*supports, *querys, epoch=epoch)
