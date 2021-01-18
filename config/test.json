@@ -1,19 +1,23 @@
 {
   "task": {
-    "dataset": "virushare-20-3gram-tfidf",
+    "dataset": "LargePE-Per35",
 
     "k": 5,
     "n": 5,
-    "qk": 15,
+    "qk": 5,
 
-    "version": 1,
+    "version": 5,
 
-    "device_id": 3
+    "device_id": 2
   },
 
-  "model_name" :  "ConvProtoNet",
+  "model_name" :  "ProtoNet",
   "testing_epoch" : 5000,
   "report_iter": 100,
+  "data_source": [
+    "sequence"
+  ],
+  "load_type": "best+",
   "test_subset": "test",
   "metrics": ["acc"],
 

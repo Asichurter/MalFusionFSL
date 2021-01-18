@@ -6,13 +6,13 @@
     "n": 5,
     "qk": 5,
 
-    "version": 1,
+    "version": 5,
 
     "device_id": 3
   },
 
   "training": {
-    "epoch": 40000,
+    "epoch": 30000,
     "data_source": [
       "sequence"
     ]
@@ -21,11 +21,12 @@
   "description": [
       "使用任务batch=2",
       "使用300维度的GloVe初始化",
+      "数据分割为1",
       "序列长度为300",
       "提前终止的标准为loss",
-      "使用adam优化，训练周期延长至4e4",
+      "使用sgd优化",
       "使用1层BiLSTM编码,使用1dCNN解码",
-      "只使用sequence数据",
+      "只使用sequence特征",
       "初始学习率为1e-3"
   ],
 

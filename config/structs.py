@@ -91,3 +91,13 @@ class TestConfig:
         self.Metrics = cfg['metrics']
         self.Desc = cfg['description']
         self.ReportIter= cfg['report_iter']
+        self.DataSource = cfg['data_source']
+        self.LoadType = cfg['load_type']
+
+    def desc(self):
+        desc = []
+        for d in self.Desc:
+            desc.append(d)
+        desc.append(f'{self.LoadType} used')
+        # ...
+        return desc
