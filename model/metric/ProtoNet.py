@@ -26,10 +26,10 @@ class ProtoNet(BaseProtoModel):
                 query_seqs, query_imgs, query_lens, query_labels,
                 epoch=None, metric='euc', return_embeddings=False):
 
-        support_seqs, query_seqs, \
-        support_imgs, query_imgs = self.embed(support_seqs, query_seqs,
-                                              support_lens, query_lens,
-                                              support_imgs, query_imgs)
+        embedded_support_seqs, embedded_query_seqs, \
+        embedded_support_imgs, embedded_query_imgs = self.embed(support_seqs, query_seqs,
+                                                                support_lens, query_lens,
+                                                                support_imgs, query_imgs)
 
         # support seqs/imgs shape: [n, k, dim]
         # query seqs/imgs shape: [qk, dim]
@@ -37,8 +37,8 @@ class ProtoNet(BaseProtoModel):
         k, n, qk = self.TaskParams.k, self.TaskParams.n, self.TaskParams.qk
 
         # 直接使用seq和img的raw output进行fuse
-        support_fused_features = self._fuse(support_seqs, support_imgs, fuse_dim=2)
-        query_fused_features = self._fuse(query_seqs, query_imgs, fuse_dim=1)
+        support_fused_features = self._fuse(embedded_support_seqs, embedded_support_imgs, fuse_dim=2)
+        query_fused_features = self._fuse(embedded_query_seqs, embedded_query_imgs, fuse_dim=1)
         dim = support_fused_features.size(2)
 
         # 原型向量
