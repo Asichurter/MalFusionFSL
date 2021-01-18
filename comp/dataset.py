@@ -1,6 +1,7 @@
 import torch as t
 from torch.utils.data.dataset import Dataset
 from torch.utils.data.dataloader import DataLoader
+import random
 
 from utils.file import loadJson
 
@@ -36,7 +37,7 @@ class FusionDataset(Dataset):
 class SeqDataset(Dataset):
 
     def __init__(self, api_data_path, seq_len_path, N):
-        self.ApiData = t.load(api_data_path)
+        self.ApiData = t.load(api_data_path).cuda().unsqueeze(1)    # 在第2维度上扩充，以便下标取时不用再unsqueeze
         self.ApiSeqLen = [0] * len(self.ApiData)
 
         seq_lens = loadJson(seq_len_path)
@@ -50,9 +51,10 @@ class SeqDataset(Dataset):
         class_num = len(self.ApiData) // N
         self.TotalClassNum = class_num
 
-        self.Labels = []
+        labels = []
         for l in range(class_num):
-            self.Labels += [l] * N
+            labels += [l] * N
+        self.Labels = t.LongTensor(labels).cuda().unsqueeze(1)  # 在第2维度上扩充，以便下标取时不用再unsqueeze
 
     def __getitem__(self, item):
         return self.ApiData[item], self.ApiSeqLen[item], self.Labels[item]
@@ -65,19 +67,24 @@ class SeqDataset(Dataset):
         def seqCollectFn(data):
             seqs, lens, labels = [], [], []
             for seq,len_,label in data:
-                seqs.append(seq.tolist())
+                seqs.append(seq)
                 lens.append(len_)
                 labels.append(label)
             # 没有按照序列长度排序，需要在pack时设置enforce_sort = False
-            return t.LongTensor(seqs), lens, t.LongTensor(labels)
+            return t.cat(seqs, dim=0), lens, t.cat(labels, dim=0)
 
         return seqCollectFn
 
 
 class ImgDataset(Dataset):
 
-    def __init__(self, img_data_path, N):
-        self.ImgData = t.load(img_data_path)
+    def __init__(self, img_data_path, N,
+                 crop_size=224,
+                 rotate=True):
+        self.ImgData = t.load(img_data_path).cuda().unsqueeze(1)    # 在第2维度上扩充，以便下标取时不用再unsqueeze
+        self.CropSize = crop_size
+        self.W = self.ImgData.size(-1)
+        self.Rotate = rotate
 
         self.Datalen = len(self.ImgData)
 
@@ -85,12 +92,36 @@ class ImgDataset(Dataset):
         class_num = len(self.ImgData) // N
         self.TotalClassNum = class_num
 
-        self.Labels = []
+        labels = []
         for l in range(class_num):
-            self.Labels += [l] * N
+            labels += [l] * N
+        self.Labels = t.LongTensor(labels).cuda().unsqueeze(1)  # 在第2维度上扩充，以便下标取时不用再unsqueeze
+
+    def _rotate_img(self, img):
+        if not self.Rotate:
+            return img
+
+        rot_var = random.choice([0,1,2,3])
+        return t.rot90(img, rot_var, dims=(2,3))
+
+    def _crop_img(self, img):
+        if self.CropSize is None:
+            return img
+
+        crop_size = self.CropSize
+        w = self.W
+
+        bound_width = w - crop_size
+        x_rd, y_rd = random.randint(0, bound_width), random.randint(0, bound_width)
+        img = img[:, :, x_rd:x_rd + crop_size, y_rd:y_rd + crop_size]           # 留两个维度出来，一个是通道维度，一个是扩张cat用的维度
+
+        return img
 
     def __getitem__(self, item):
-        return self.ImgData[item], self.Labels[item]
+        img = self.ImgData[item]
+        img = self._crop_img(img)
+        img = self._rotate_img(img)
+        return img, self.Labels[item]  # 留出一个维度以便cat
 
     def __len__(self):
         return self.Datalen
@@ -100,9 +131,9 @@ class ImgDataset(Dataset):
         def imgCollectFn(data):
             imgs, labels = [], []
             for img, label in data:
-                imgs.append(img.tolist())
+                imgs.append(img)
                 labels.append(label)
-            return t.Tensor(imgs), t.LongTensor(labels)
+            return t.cat(imgs, dim=0), t.cat(labels, dim=0)
 
         return imgCollectFn
 

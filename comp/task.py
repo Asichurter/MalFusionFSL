@@ -165,16 +165,6 @@ class RegularEpisodeTask(EpisodeTask):
         # 1.9修复bug：metric的labels必须在标签归一化之后更新
         self.Metric.updateLabels(query_labels)
 
-        if self.UseCuda:
-            support_seqs = support_seqs.cuda() if support_seqs is not None else None
-            support_imgs = support_imgs.cuda() if support_imgs is not None else None
-            query_seqs = query_seqs.cuda() if query_seqs is not None else None
-            query_imgs = query_imgs.cuda() if query_imgs is not None else None
-
-            query_labels = query_labels.cuda()
-            support_labels = support_labels.cuda()
-            self.LabelsCache = query_labels
-
         # if self.Parallel is not None:
         #     supports = supports.repeat((len(self.Parallel),1,1,1))
         #     self.SupSeqLenCache = [self.SupSeqLenCache]*len(self.Parallel)
