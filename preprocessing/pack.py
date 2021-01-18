@@ -148,5 +148,5 @@ def packAllSubsets(dataset,
                       num_per_class=num_per_class,
                       api_data_save_path=pm.apiData(),
                       img_data_save_path=pm.imgData(),
-                      idx2cls_mapping_save_path=pm.subsdetIdxClassMapper(),
+                      idx2cls_mapping_save_path=pm.subsetIdxClassMapping(),
                       max_seq_len=max_seq_len)

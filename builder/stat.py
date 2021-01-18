@@ -4,6 +4,7 @@ from utils.manager import TrainStatManager, TestStatManager, PathManager
 
 def buildStatManager(is_train,
                      path_manager: PathManager,
+                     task_config: config.TaskConfig=None,
                      train_config: config.TrainingConfig=None,
                      test_config: config.TestConfig=None):
 
