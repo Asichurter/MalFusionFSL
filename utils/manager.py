@@ -2,10 +2,12 @@ import warnings
 import config
 import numpy as np
 import torch as t
+import time
 
-from utils.file import dumpJson
+from utils.file import dumpJson, loadJson
 from utils.os import joinPath
 from utils.timer import StepTimer
+from utils.stat import calBeliefeInterval
 
 ##########################################################
 # 项目数据集路径管理器。
@@ -65,14 +67,18 @@ class PathManager:
         return joinPath(self.Base, self.Dataset, 'data', self.Subset, 'seq_length.json')
 
     # 子集的类下标到类名称的映射存储路径
-    def subsdetIdxClassMapper(self):
+    def subsetIdxClassMapping(self):
         if self.Subset == 'all':
             raise ValueError("[PathManager] 类型为all时无“下标-类”映射数据文件")
         return joinPath(self.Base, self.Dataset, 'data', self.Subset, 'idx_mapping.json')
 
     # 返回model存储路径
-    def model(self):
-        return joinPath(self.Base, self.Dataset, 'models', self.ModelName)
+    def model(self, load_type='best'):
+        if load_type == 'last':
+            prefix = '_latest'
+        else:
+            prefix = ''
+        return joinPath(self.Base, self.Dataset, 'models', self.ModelName+f'_v.{self.Version}'+prefix)
 
     # 返回当前version的doc存储目录
     def doc(self):
@@ -181,12 +187,10 @@ class StatKernel:
             self.RecLossCache = recent_loss
 
     def printAllTime(self, title):
-        print(title, end=' :')
         all_time_metric = self.getAlltimeMetric()
         all_time_loss = self.getAlltimeLoss()
         for i, name in enumerate(self.MetricNames):
-            print(f"{name}:{all_time_metric[i]}", end=" ")
-        print()
+            print(f"{title} {name}: {all_time_metric[i]}")
         print(title, 'loss:', all_time_loss)
 
     def printBest(self, title):
@@ -218,8 +222,17 @@ class StatKernel:
         n = self.MetricNum
         return [np.mean(self.MetricHist[i::n]) for i in range(n)]
 
+    def getAlltimeMetricInterval(self):
+        n = self.MetricNum
+        metrics = [self.MetricHist[i::n] for i in range(n)]
+        intervals = [calBeliefeInterval(metric) for metric in metrics]
+        return intervals
+
     def getAlltimeLoss(self):
         return np.mean(self.LossHist)
+
+    def getAlltimeLossInterval(self):
+        return calBeliefeInterval(self.LossHist)
 
 
 class TrainStatManager:
@@ -314,7 +327,7 @@ class TrainStatManager:
         vh = self.ValStat.MetricHist[idx::self.ValStat.MetricNum]
         th,vh = np.array(th), np.array(vh)
         th = np.mean(th.reshape(-1, self.TrainReportIter), axis=1)
-        vh = np.mean(th.reshape(-1, self.ValReportIter), axis=1)
+        vh = np.mean(vh.reshape(-1, self.ValReportIter), axis=1)
         return th,vh
 
     # 用于绘制总体图时使用的压缩hist方法
@@ -323,7 +336,7 @@ class TrainStatManager:
         vh = self.ValStat.LossHist
         th, vh = np.array(th), np.array(vh)
         th = np.mean(th.reshape(-1, self.TrainReportIter), axis=1)
-        vh = np.mean(th.reshape(-1, self.ValReportIter), axis=1)
+        vh = np.mean(vh.reshape(-1, self.ValReportIter), axis=1)
         return th, vh
 
     # 该方法使用cache，因此必须保证在printRecent之后调用
@@ -362,9 +375,37 @@ class TestStatManager:
             self.Timer.step(step_stride=self.ReportIter, prt=True, end=True)
 
         elif self.TestIterCount % self.ReportIter == 0:
+            self._printBlockSeg()
             print(self.TestIterCount, "Epoch")
             self.TestStat.printRecent(title="Test", all_time=True)
             self.Timer.step(step_stride=self.ReportIter, prt=True)
 
     def _printBlockSeg(self):
         print('\n\n****************************************')
+
+    def dump(self, path, key='test_result', desc=[]):
+        metric_names = self.TestStat.MetricNames
+        metrics = self.TestStat.getAlltimeMetric()
+        metric_intervals = self.TestStat.getAlltimeMetricInterval()
+        loss = self.TestStat.getAlltimeLoss()
+        loss_interval = self.TestStat.getAlltimeLossInterval()
+
+        try:
+            test_result = loadJson(path)
+        except FileNotFoundError:
+            test_result = {}
+
+        if key not in test_result:
+            test_result[key] = []
+
+        result_obj = {
+            'time': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
+            'metrics': {
+                n: '%.5f'%v+'±'+'%.5f'%itv for n,v,itv in zip(metric_names, metrics, metric_intervals)
+            },
+            'loss': '%.5f'%loss+'±'+'%.5f'%loss_interval,
+            'desc': desc
+        }
+
+        test_result[key].append(result_obj)
+        dumpJson(test_result, path)
