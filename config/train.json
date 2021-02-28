@@ -6,15 +6,15 @@
     "n": 5,
     "qk": 5,
 
-    "version": 5,
+    "version": 11,
 
-    "device_id": 3
+    "device_id": 0
   },
 
   "training": {
     "epoch": 30000,
     "data_source": [
-      "sequence"
+      "image"
     ]
   },
 
@@ -26,13 +26,16 @@
       "提前终止的标准为loss",
       "使用sgd优化",
       "使用1层BiLSTM编码,使用1dCNN解码",
-      "只使用sequence特征",
+      "使用sequence",
       "初始学习率为1e-3"
   ],
 
   "model": {
     "model_name" :  "ProtoNet",
     "feature_dim": null,
+    "fusion": {
+        "type": "image"
+    },
 
     "embedding": {
       "use_pretrained": true,
@@ -145,14 +148,14 @@
   },
 
   "visualization": {
-    "enabled" : false,
+    "enabled" : true,
     "type": "visdom",
     "record_gradient": false,
     "gradient_update_cycle": 1000,
 
     "plot" : {
       "types" : ["line", "line"],
-      "titles": ["accuracy", "loss"],
+      "titles": ["acc", "loss"],
       "xlabels" : ["iterations", "iterations"],
       "ylabels" : ["accuracy", "loss"],
       "legends" : [

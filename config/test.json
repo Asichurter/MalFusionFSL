@@ -6,9 +6,9 @@
     "n": 5,
     "qk": 5,
 
-    "version": 5,
+    "version": 10,
 
-    "device_id": 2
+    "device_id": 0
   },
 
   "model_name" :  "ProtoNet",
@@ -17,7 +17,7 @@
   "data_source": [
     "sequence"
   ],
-  "load_type": "best+",
+  "load_type": "best",
   "test_subset": "test",
   "metrics": ["acc"],
 
