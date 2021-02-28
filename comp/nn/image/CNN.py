@@ -25,7 +25,7 @@ def CNN2DBlock(in_feature, out_feature, stride=1, kernel=3, padding=1, use_nonli
         nn.Conv2d(in_feature, out_feature, kernel_size=kernel, padding=padding, stride=stride, bias=False),
         nn.BatchNorm2d(out_feature),
         nn.ReLU(inplace=True),
-        nn.MaxPool2d(3,2,1)
+        nn.MaxPool2d(2)
     ]
     if not use_nonlinear:
         layers.pop(2)
