@@ -184,17 +184,20 @@ class BaseProtoModel(nn.Module):
     def name(self):
         return "BaseProtoModel"
 
+    def test(self, *args, **kwargs):
+        raise NotImplementedError
+
     def _fuse(self, seq_features, img_features, **kwargs):
         return self.Fusion(seq_features, img_features, **kwargs)
 
-    def train_(self, mode=True):
+    def train_state(self, mode=True):
         self.TaskType = "Train"
         super().train(mode)
 
-    def validate_(self):
+    def validate_state(self):
         self.TaskType = "Validate"
         super().eval()
 
-    def test_(self):
+    def test_state(self):
         self.TaskType = "Test"
         super().eval()

@@ -62,6 +62,10 @@ class NnNet(BaseProtoModel):
             "predicts": None
         }
 
+    def test(self, *args, **kwargs):
+        with torch.no_grad():
+            return self.forward(*args, **kwargs)
+
     def name(self):
         return "NnNet"
 

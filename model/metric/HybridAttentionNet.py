@@ -134,3 +134,10 @@ class HAPNet(BaseProtoModel):
             "loss": self.LossFunc(logits, query_labels),
             "predicts": None
         }
+
+    def test(self, *args, **kwargs):
+        with t.no_grad():
+            return self.forward(*args, **kwargs)
+
+    def name(self):
+        return "HAPNet"

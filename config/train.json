@@ -24,7 +24,7 @@
       "数据分割为1",
       "序列长度为300",
       "提前终止的标准为loss",
-      "使用sgd优化",
+      "使用adam优化",
       "使用1层BiLSTM编码,使用1dCNN解码",
       "使用sequence",
       "初始学习率为1e-3"
@@ -133,11 +133,11 @@
 
   "optimize": {
     "loss_function": "nll",
-    "optimizer": "sgd",
+    "optimizer": "adam",
     "default_lr": 1e-3,
     "custom_lrs": {},
     "weight_decay": 5e-4,
-    "task_batch": 2,
+    "task_batch": 1,
 
 
     "scheduler": {

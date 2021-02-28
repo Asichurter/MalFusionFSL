@@ -49,10 +49,10 @@ stat.begin()
 for epoch in range(config.test.Epoch):
     # print("# %d epoch"%epoch)
 
-    model.test_()
+    model.test_state()
 
     supports, querys = test_task.episode()
-    outs = model(*supports, *querys, epoch=epoch)
+    outs = model.test(*supports, *querys, epoch=epoch)
 
     loss_val = outs['loss']
     if outs['logits'] is not None:

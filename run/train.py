@@ -69,7 +69,7 @@ stat.begin()
 for epoch in range(config.train.TrainEpoch):
     # print("# %d epoch"%epoch)
 
-    model.train_()
+    model.train_state()
     # 1.17修复：梯度没有归0导致优化进行时梯度累计
     model.zero_grad()
 
@@ -101,28 +101,31 @@ for epoch in range(config.train.TrainEpoch):
     # validate
     if (epoch+1) % config.train.ValCycle == 0:
         print("validate at %d epoch"%(epoch+1))
-        model.validate_()
+        model.validate_state()
         for val_i in range(config.train.ValEpisode):
-            val_supports, val_querys = val_task.episode()
-            val_outs = model(*val_supports, *val_querys, epoch=epoch)
+            supports, querys = val_task.episode()
+            # t.cuda.empty_cache()
+            outs = model.test(*supports, *querys, epoch=epoch)
 
-            val_loss_val = val_outs['loss']
-            if val_outs['logits'] is not None:
-                val_metrics = val_task.metrics(val_outs['logits'],
-                                               is_labels=False,
-                                               metrics=config.train.Metrics)
+            loss_val = outs['loss']
+            if outs['logits'] is not None:
+                metrics = val_task.metrics(outs['logits'],
+                                           is_labels=False,
+                                           metrics=config.train.Metrics)
             elif outs['predicts'] is not None:
-                val_metrics = val_task.metrics(val_outs['predicts'],
-                                               is_labels=True,
-                                               metrics=config.train.Metrics)
+                metrics = val_task.metrics(outs['predicts'],
+                                           is_labels=True,
+                                           metrics=config.train.Metrics)
             else:
                 raise RuntimeError("[Train] Either logits or predicts must be returned by the model's forward")
 
-            stat.recordVal(val_metrics, val_loss_val.detach().item(), model)
+            stat.recordVal(metrics, loss_val.detach().item(), model)
 
         train_metric, train_loss, val_metric, val_loss = stat.getRecentRecord(metric_idx=0)
-        plot.update(title=config.train.Metrics[0], x_val=epoch+1, y_val=[[train_metric, val_metric]])
-        plot.update(title='loss', x_val=epoch, y_val=[[train_loss, val_loss]])
+        plot.update(title=config.train.Metrics[0], x_val=epoch, y_val=[[train_metric, val_metric]],
+                    update={'flag': True, 'val': None if epoch//config.train.ValCycle==0 else 'append'})
+        plot.update(title='loss', x_val=epoch, y_val=[[train_loss, val_loss]],
+                    update={'flag': True, 'val': None if epoch//config.train.ValCycle==0 else 'append'})
 
 stat.dumpStatHist()
 plotLine(stat.getHistMetric(idx=0), ('train '+config.train.Metrics[0], 'val '+config.train.Metrics[0]),
