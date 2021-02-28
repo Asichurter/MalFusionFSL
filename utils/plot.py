@@ -22,9 +22,12 @@ class VisdomPlot(EmptyPlot):
 
     def update(self, title, x_val, y_val, update={'flag':False, 'val':None}):
         if not update['flag']:
-            update_flag = None if x_val==0 else 'append'
+            update_flag = None if x_val==0 else 'append'    # 第一个iteration为1
         else:
             update_flag = update['val']
+
+        if update_flag is None:
+            print('[VisdomPlot] clear visdom plot')
 
         y_val = np.array(y_val)
         y_size = y_val.shape[1]
