@@ -34,7 +34,9 @@ stat = buildStatManager(is_train=False,
 loss_func = buildLossFunc(optimize_config=config.optimize)
 model = buildModel(path_manager=test_path_manager,
                    model_params=config.params,
-                   loss_func=loss_func)
+                   task_config=config.task,
+                   loss_func=loss_func,
+                   data_source=config.test.DataSource)
 
 state_dict = t.load(test_path_manager.model(load_type=config.test.LoadType))
 model.load_state_dict(state_dict)

@@ -8,13 +8,17 @@ from comp.nn.reduction.CNN import CNNEncoder1D
 from comp.nn.reduction.selfatt import BiliAttnReduction
 import config
 from utils.manager import PathManager
+from builder.fusion import buildFusion
+
 
 class BaseProtoModel(nn.Module):
 
     def __init__(self,
                  model_params: config.ParamsConfig,
                  path_manager: PathManager,
-                 loss_func, **kwargs):
+                 loss_func,
+                 data_source,
+                 **kwargs):
         super(BaseProtoModel, self).__init__()
 
         self.LossFunc = loss_func
@@ -22,65 +26,78 @@ class BaseProtoModel(nn.Module):
         self.TaskParams = None
         self.ImageW = None
         self.TaskType = ""
+        self.DataSource = data_source
 
         # ------------------------------------------------------------------------------------------
-        if model_params.Embedding['use_pretrained']:
-            pretrained_matrix = t.Tensor(np.load(path_manager.wordEmbedding(), allow_pickle=True))
-            self.Embedding = nn.Embedding.from_pretrained(pretrained_matrix, freeze=False)
-        else:
-            self.Embedding = nn.Embedding(model_params.Embedding['word_count'],
-                                          embedding_dim=model_params.Embedding['embed_size'],
-                                          padding_idx=0)
-        self.EmbedDrop = nn.Dropout(model_params.Regularization['dropout'])
-
-        hidden_size = -1
-        if model_params.SeqBackbone['seq_type'] == 'LSTM':
-            self.SeqEncoder = BiLstmEncoder(input_size=model_params.Embedding['embed_size'],
-                                            max_seq_len=model_params.SeqBackbone['max_seq_len'],
-                                            **model_params.SeqBackbone['LSTM'])
-            hidden_size = (1 + model_params.SeqBackbone['LSTM']['bidirectional']) \
-                          * model_params.SeqBackbone['LSTM']['hidden_size']
-        else:
-            # TODO: 实现的其他方法的同时需要赋值hidden_size
-            raise NotImplementedError("[ModelInit] Sequence modeling part has not been implemented except for 'LSTM'")
-
-        # 序列约减方法按照顺序进行判断，先是自注意力，然后是时序卷积
-        if model_params.SeqBackbone['self_attention']['enabled']:
-            if model_params.SeqBackbone['self_attention']['type'] == 'custom':
-                self.SeqReduction = BiliAttnReduction(input_dim=hidden_size,
-                                                  max_seq_len=model_params.SeqBackbone['max_seq_len'])
+        if 'sequence' in data_source:
+            if model_params.Embedding['use_pretrained']:
+                pretrained_matrix = t.Tensor(np.load(path_manager.wordEmbedding(), allow_pickle=True))
+                self.Embedding = nn.Embedding.from_pretrained(pretrained_matrix, freeze=False)
             else:
-                raise NotImplementedError("[ModelInit] Self-attention part has not been implemented except for 'custom'")
-        elif model_params.SeqBackbone['temporal_conv']['enabled']:
-            self.SeqReduction = CNNEncoder1D(num_channels=[hidden_size,hidden_size],
-                                             **model_params.SeqBackbone['temporal_conv']['params'])
-        else:
-            raise NotImplementedError("[ModelInit] Self-attention part has not been implemented except for 'self-att' and 'temporal_conv'")
+                self.Embedding = nn.Embedding(model_params.Embedding['word_count'],
+                                              embedding_dim=model_params.Embedding['embed_size'],
+                                              padding_idx=0)
+            self.EmbedDrop = nn.Dropout(model_params.Regularization['dropout'])
 
-        if model_params.FeatureDim is not None:
-            self.SeqTrans = nn.Sequential(nn.Linear(in_features=hidden_size, out_features=model_params.FeatureDim),
-                                          nn.BatchNorm1d(model_params.FeatureDim))
-        else:
-            self.SeqTrans = nn.Identity()
+            hidden_size = -1
+            if model_params.SeqBackbone['seq_type'] == 'LSTM':
+                self.SeqEncoder = BiLstmEncoder(input_size=model_params.Embedding['embed_size'],
+                                                max_seq_len=model_params.SeqBackbone['max_seq_len'],
+                                                **model_params.SeqBackbone['LSTM'])
+                hidden_size = (1 + model_params.SeqBackbone['LSTM']['bidirectional']) \
+                              * model_params.SeqBackbone['LSTM']['hidden_size']
+            else:
+                # TODO: 实现的其他方法的同时需要赋值hidden_size
+                raise NotImplementedError("[ModelInit] Sequence modeling part has not been implemented except for 'LSTM'")
+
+
+
+            # 序列约减方法按照顺序进行判断，先是自注意力，然后是时序卷积
+            if model_params.SeqBackbone['self_attention']['enabled']:
+                if model_params.SeqBackbone['self_attention']['type'] == 'custom':
+                    self.SeqReduction = BiliAttnReduction(input_dim=hidden_size,
+                                                      max_seq_len=model_params.SeqBackbone['max_seq_len'])
+                else:
+                    raise NotImplementedError("[ModelInit] Self-attention part has not been implemented except for 'custom'")
+            elif model_params.SeqBackbone['temporal_conv']['enabled']:
+                self.SeqReduction = CNNEncoder1D(num_channels=[hidden_size,hidden_size],
+                                                 **model_params.SeqBackbone['temporal_conv']['params'])
+            else:
+                raise NotImplementedError("[ModelInit] Self-attention part has not been implemented except for 'self-att' and 'temporal_conv'")
+
+            if model_params.FeatureDim is not None:
+                self.SeqTrans = nn.Sequential(nn.Linear(in_features=hidden_size, out_features=model_params.FeatureDim),
+                                              nn.BatchNorm1d(model_params.FeatureDim))
+                self.SeqFeatureDim = model_params.FeatureDim
+            else:
+                self.SeqTrans = nn.Identity()
+                self.SeqFeatureDim = hidden_size
+
+        # ------------------------------------------------------------------------------------------
+        if 'image' in data_source:
+            if model_params.ConvBackbone['type'] == 'conv-4':
+                self.ImageEmbedding = StackConv2D(**model_params.ConvBackbone['params']['conv-n'])
+
+            if model_params.FeatureDim is not None:
+                # 此处默认卷积网络输出的维度是通道数量，即每个feature_map最终都reduce为1x1
+                self.ImgTrans = nn.Sequential(nn.Linear(in_features=model_params.ConvBackbone['params']['conv-n']['channels'][-1],
+                                                        out_features=model_params.FeatureDim),
+                                              nn.BatchNorm1d(model_params.FeatureDim))
+                self.ImgFeatureDim = model_params.FeatureDim
+            else:
+                self.ImgTrans = nn.Identity()
+                self.ImgFeatureDim = model_params.ConvBackbone['params']['conv-n']['channels'][-1]
 
         # ------------------------------------------------------------------------------------------
 
-        if model_params.ConvBackbone['type'] == 'conv-4':
-            self.ImageEmbedding = StackConv2D(**model_params.ConvBackbone['params']['conv-n'])
-
-        if model_params.FeatureDim is not None:
-            # 此处默认卷积网络输出的维度是通道数量，即每个feature_map最终都reduce为1x1
-            self.ImgTrans = nn.Sequential(nn.Linear(in_features=model_params.ConvBackbone['params']['conv-n']['channels'][-1],
-                                                    out_features=model_params.FeatureDim),
-                                          nn.BatchNorm1d(model_params.FeatureDim))
-        else:
-            self.ImgTrans = nn.Identity()
+        self.FusedFeatureDim = None
+        self.Fusion = buildFusion(self, model_params)
 
     def _seqEmbed(self, x, lens=None):
         x = self.EmbedDrop(self.Embedding(x))
         x = self.SeqEncoder(x, lens=lens)
         x = self.SeqReduction(x, lens=lens)
-        # x = self.SeqTrans(x)
+        x = self.SeqTrans(x)
         return x
 
     def _imgEmbed(self, x):
@@ -168,7 +185,7 @@ class BaseProtoModel(nn.Module):
         return "BaseProtoModel"
 
     def _fuse(self, seq_features, img_features, **kwargs):
-        raise NotImplementedError
+        return self.Fusion(seq_features, img_features, **kwargs)
 
     def train_(self, mode=True):
         self.TaskType = "Train"

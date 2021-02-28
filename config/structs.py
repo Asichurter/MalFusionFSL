@@ -1,3 +1,5 @@
+import os
+
 from utils.file import loadJson
 from .const import *
 
@@ -6,9 +8,10 @@ def _loadJsonConfig(file_name, err_msg):
         try:
             cfg = loadJson(rel_path+file_name)
             return cfg
-        except:
+        except FileNotFoundError:
+            print(f"[ConfigInit] not found: {rel_path+file_name}")
             continue
-    raise RuntimeError("[ConfigInit] " + err_msg)
+    raise RuntimeError(f"[ConfigInit] pwd: {os.getcwd()}, {err_msg}")
 
 class EnvConfig:
     def __init__(self, cfg):
@@ -60,6 +63,7 @@ class ParamsConfig:
     def __init__(self, cfg):
         self.ModelName = cfg['model']['model_name']
         self.FeatureDim = cfg['model']['feature_dim']
+        self.Fusion = cfg['model']['fusion']
         self.Embedding = cfg['model']['embedding']
         self.SeqBackbone = cfg['model']['sequence_backbone']
         self.ConvBackbone = cfg['model']['conv_backbone']

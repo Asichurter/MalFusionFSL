@@ -3,7 +3,7 @@ import sys
 sys.path.append('../')
 
 import config
-from utils.version import saveConfigFile
+from utils.version import saveConfigFile, saveRunVersionConfig
 from utils.manager import *
 from comp.dataset import FusedDataset
 from builder import *
@@ -43,8 +43,10 @@ stat = buildStatManager(is_train=True,
 plot = buildPlot(config.plot)
 loss_func = buildLossFunc(optimize_config=config.optimize)
 model = buildModel(path_manager=train_path_manager,
+                   task_config=config.task,
                    model_params=config.params,
-                   loss_func=loss_func)
+                   loss_func=loss_func,
+                   data_source=config.train.DataSource)
 optimizer = buildOptimizer(named_parameters=model.named_parameters(),
                            optimize_params=config.optimize)
 scheduler = buildScheduler(optimizer=optimizer,
@@ -53,9 +55,14 @@ scheduler = buildScheduler(optimizer=optimizer,
 # 统计模型参数数量
 statParamNumber(model)
 # 保存运行配置文件
-saveConfigFile(folder_path=train_path_manager.doc(),
+saveConfigFile(config.params,
+               folder_path=train_path_manager.doc(),
                dataset_base=train_path_manager.datasetBase(),
                model_name=config.params.ModelName)
+# 保存训练信息
+saveRunVersionConfig(config.task,
+                     config.params,
+                     config.train.Desc)
 
 print("\n\n[train] Training starts!")
 stat.begin()
@@ -102,12 +109,14 @@ for epoch in range(config.train.TrainEpoch):
             val_loss_val = val_outs['loss']
             if val_outs['logits'] is not None:
                 val_metrics = val_task.metrics(val_outs['logits'],
-                                            is_labels=False,
-                                            metrics=config.train.Metrics)
+                                               is_labels=False,
+                                               metrics=config.train.Metrics)
             elif outs['predicts'] is not None:
                 val_metrics = val_task.metrics(val_outs['predicts'],
-                                              is_labels=True,
-                                              metrics=config.train.Metrics)
+                                               is_labels=True,
+                                               metrics=config.train.Metrics)
+            else:
+                raise RuntimeError("[Train] Either logits or predicts must be returned by the model's forward")
 
             stat.recordVal(val_metrics, val_loss_val.detach().item(), model)
 

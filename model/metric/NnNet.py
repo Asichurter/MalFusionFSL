@@ -11,8 +11,9 @@ class NnNet(BaseProtoModel):
     def __init__(self,
                  model_params: config.ParamsConfig,
                  path_manager: PathManager,
-                 loss_func):
-        super().__init__(model_params, path_manager, loss_func)
+                 loss_func,
+                 data_source):
+        super().__init__(model_params, path_manager, loss_func, data_source)
 
         self.DistTemp = model_params.More['temperature']
 
@@ -65,5 +66,4 @@ class NnNet(BaseProtoModel):
         return "NnNet"
 
     def _fuse(self, seq_features, img_features, fuse_dim=1):
-        return seq_features
-        # return torch.cat((seq_features, img_features), dim=fuse_dim)
+        return super()._fuse(seq_features, img_features, fuse_dim=1)
