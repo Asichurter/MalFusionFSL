@@ -180,7 +180,9 @@ class StatKernel:
         print(title, 'loss:', recent_loss)
 
         if all_time:
+            print('------------------------------------')
             self.printAllTime(title='Current '+title)
+        print('------------------------------------')
 
         if cache_recent:
             self.RecMetricCache = recent_metric
@@ -382,6 +384,11 @@ class TestStatManager:
 
     def _printBlockSeg(self):
         print('\n\n****************************************')
+
+
+    def _printSectionSeg(self):
+        print("---------------------------------")
+
 
     def dump(self, path, key='test_result', desc=[]):
         metric_names = self.TestStat.MetricNames
