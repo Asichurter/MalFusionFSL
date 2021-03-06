@@ -13,7 +13,7 @@ from utils.plot import plotLine
 
 print('[test] Init managers...')
 test_path_manager = PathManager(dataset=config.test.Task.Dataset,
-                                subset="test",
+                                subset=config.test.Subset,
                                 version=config.test.Task.Version,
                                 model_name=config.test.ModelName)
 config.reloadAllTestConfig(test_path_manager.doc() + 'train.json')
