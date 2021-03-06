@@ -6,16 +6,18 @@
     "n": 5,
     "qk": 5,
 
-    "version": 11,
+    "version": 14,
 
     "device_id": 0
   },
 
   "training": {
-    "epoch": 30000,
+    "epoch": 60000,
     "data_source": [
+      "sequence",
       "image"
-    ]
+    ],
+    "split_version": 1
   },
 
   "description": [
@@ -26,7 +28,7 @@
       "提前终止的标准为loss",
       "使用adam优化",
       "使用1层BiLSTM编码,使用1dCNN解码",
-      "使用sequence",
+      "使用sequence和image的cat",
       "初始学习率为1e-3"
   ],
 
@@ -34,7 +36,7 @@
     "model_name" :  "ProtoNet",
     "feature_dim": null,
     "fusion": {
-        "type": "image"
+        "type": "cat"
     },
 
     "embedding": {
