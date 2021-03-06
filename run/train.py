@@ -1,4 +1,5 @@
 import sys
+import torch
 
 sys.path.append('../')
 
@@ -21,14 +22,14 @@ val_path_manager = PathManager(dataset=config.task.Dataset,
                                version=config.task.Version)
 
 train_dataset = FusedDataset(train_path_manager.apiData(),
-                              train_path_manager.imgData(),
-                              train_path_manager.apiSeqLen(),
-                              config.task.N,
+                             train_path_manager.imgData(),
+                             train_path_manager.apiSeqLen(),
+                             config.task.N,
                              config.train.DataSource)
 val_dataset = FusedDataset(val_path_manager.apiData(),
-                              val_path_manager.imgData(),
-                              val_path_manager.apiSeqLen(),
-                              config.task.N,
+                           val_path_manager.imgData(),
+                           val_path_manager.apiSeqLen(),
+                           config.task.N,
                            config.train.DataSource)
 
 print('[train] building components...')
@@ -64,6 +65,8 @@ saveRunVersionConfig(config.task,
                      config.params,
                      config.train.Desc)
 
+# model.load_state_dict(torch.load('F:/FSL_mal_data/datasets/LargePE-Per35/models/ProtoNet_v.13_latest'))
+
 print("\n\n[train] Training starts!")
 stat.begin()
 for epoch in range(config.train.TrainEpoch):
@@ -73,7 +76,7 @@ for epoch in range(config.train.TrainEpoch):
     # 1.17修复：梯度没有归0导致优化进行时梯度累计
     model.zero_grad()
 
-    loss_val = t.zeros((1,)).cuda()                 # loss需要cuda以保证优化时加速
+    loss_val = t.zeros((1,)).cuda()  # loss需要cuda以保证优化时加速
     metrics = np.zeros((len(config.train.Metrics),))
     for i in range(config.optimize.TaskBatch):
         supports, querys = train_task.episode()
@@ -99,8 +102,8 @@ for epoch in range(config.train.TrainEpoch):
     stat.recordTrain(metrics, loss_val.detach().item())
 
     # validate
-    if (epoch+1) % config.train.ValCycle == 0:
-        print("validate at %d epoch"%(epoch+1))
+    if (epoch + 1) % config.train.ValCycle == 0:
+        print("validate at %d epoch" % (epoch + 1))
         model.validate_state()
         for val_i in range(config.train.ValEpisode):
             supports, querys = val_task.episode()
@@ -123,21 +126,21 @@ for epoch in range(config.train.TrainEpoch):
 
         train_metric, train_loss, val_metric, val_loss = stat.getRecentRecord(metric_idx=0)
         plot.update(title=config.train.Metrics[0], x_val=epoch, y_val=[[train_metric, val_metric]],
-                    update={'flag': True, 'val': None if epoch//config.train.ValCycle==0 else 'append'})
+                    update={'flag': True, 'val': None if epoch // config.train.ValCycle == 0 else 'append'})
         plot.update(title='loss', x_val=epoch, y_val=[[train_loss, val_loss]],
-                    update={'flag': True, 'val': None if epoch//config.train.ValCycle==0 else 'append'})
+                    update={'flag': True, 'val': None if epoch // config.train.ValCycle == 0 else 'append'})
 
 stat.dumpStatHist()
-plotLine(stat.getHistMetric(idx=0), ('train '+config.train.Metrics[0], 'val '+config.train.Metrics[0]),
-         title=model.name()+' '+config.train.Metrics[0],
+plotLine(stat.getHistMetric(idx=0), ('train ' + config.train.Metrics[0], 'val ' + config.train.Metrics[0]),
+         title=model.name() + ' ' + config.train.Metrics[0],
          gap=config.train.ValCycle,
          color_list=('blue', 'red'),
-         style_list=('-','-'),
-         save_path=train_path_manager.doc()+config.train.Metrics[0]+'.png')
+         style_list=('-', '-'),
+         save_path=train_path_manager.doc() + config.train.Metrics[0] + '.png')
 
 plotLine(stat.getHistLoss(), ('train loss', 'val loss'),
-         title=model.name()+' loss',
+         title=model.name() + ' loss',
          gap=config.train.ValCycle,
          color_list=('blue', 'red'),
-         style_list=('-','-'),
-         save_path=train_path_manager.doc()+'loss.png')
+         style_list=('-', '-'),
+         save_path=train_path_manager.doc() + 'loss.png')
