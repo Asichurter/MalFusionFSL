@@ -7,14 +7,17 @@ import os
 from tqdm import tqdm
 import argparse
 
+
 def dumpJson(obj, path, indent=4):
     with open(path, 'w') as f:
         json.dump(obj, f, indent=indent)
+
 
 def loadJson(path):
     with open(path, 'r') as f:
         j = json.load(f)
     return j
+
 
 ############################################
 # 本函数用于从已经处理好的json文件中收集所有样本的api

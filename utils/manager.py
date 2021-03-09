@@ -25,7 +25,7 @@ class PathManager:
         self.ModelName = model_name
 
     # 所有数据集的根目录
-    def base(self):
+    def rootBase(self):
         return joinPath(self.Base, is_dir=True)
 
     # 数据集的根目录

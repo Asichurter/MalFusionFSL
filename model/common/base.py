@@ -78,15 +78,17 @@ class BaseProtoModel(nn.Module):
             if model_params.ConvBackbone['type'] == 'conv-4':
                 self.ImageEmbedding = StackConv2D(**model_params.ConvBackbone['params']['conv-n'])
 
-            if model_params.FeatureDim is not None:
-                # 此处默认卷积网络输出的维度是通道数量，即每个feature_map最终都reduce为1x1
-                self.ImgTrans = nn.Sequential(nn.Linear(in_features=model_params.ConvBackbone['params']['conv-n']['channels'][-1],
-                                                        out_features=model_params.FeatureDim),
-                                              nn.BatchNorm1d(model_params.FeatureDim))
-                self.ImgFeatureDim = model_params.FeatureDim
+                if model_params.FeatureDim is not None:
+                    # 此处默认卷积网络输出的维度是通道数量，即每个feature_map最终都reduce为1x1
+                    self.ImgTrans = nn.Sequential(nn.Linear(in_features=model_params.ConvBackbone['params']['conv-n']['channels'][-1],
+                                                            out_features=model_params.FeatureDim),
+                                                  nn.BatchNorm1d(model_params.FeatureDim))
+                    self.ImgFeatureDim = model_params.FeatureDim
+                else:
+                    self.ImgTrans = nn.Identity()
+                    self.ImgFeatureDim = model_params.ConvBackbone['params']['conv-n']['channels'][-1]
             else:
-                self.ImgTrans = nn.Identity()
-                self.ImgFeatureDim = model_params.ConvBackbone['params']['conv-n']['channels'][-1]
+                raise NotImplementedError(f'Not implemented image embedding module: {model_params.ConvBackbone["type"]}')
 
         # ------------------------------------------------------------------------------------------
 

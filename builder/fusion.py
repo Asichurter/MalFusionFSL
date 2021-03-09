@@ -1,6 +1,6 @@
 import config
 # from model.common.base import BaseProtoModel
-from comp.nn.fusion.plain import SeqOnlyFusion, ImgOnlyFusion, CatFusion, AddFusion
+from comp.nn.fusion.plain_fusion import SeqOnlyFusion, ImgOnlyFusion, CatFusion, AddFusion
 
 
 def buildFusion(model,
@@ -18,7 +18,7 @@ def _seq(model, train_params: config.ParamsConfig):
 
 
 def _img(model, train_params: config.ParamsConfig):
-    model.FusedFeatureDim  = model.ImgFeatureDim
+    model.FusedFeatureDim = model.ImgFeatureDim
     return ImgOnlyFusion()
 
 

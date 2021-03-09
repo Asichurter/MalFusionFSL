@@ -19,6 +19,8 @@
           "virushare-20-3gram-tfidf-general": 10,
           "HKS-general": 10,
           "virushare-45-general": 20,
+
           "LargePE-Per40": 40,
-          "LargePE-Per35": 35
+          "LargePE-Per35": 35,
+          "virushare-20": 20
 }
