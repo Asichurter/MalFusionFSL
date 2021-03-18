@@ -1,18 +1,18 @@
 {
   "task": {
-    "dataset": "LargePE-Per35",
+    "dataset": "virushare-20",
 
     "k": 5,
     "n": 5,
     "qk": 5,
 
-    "version": 14,
+    "version": 21,
 
-    "device_id": 0
+    "device_id": 3
   },
 
   "training": {
-    "epoch": 60000,
+    "epoch": 40000,
     "data_source": [
       "sequence",
       "image"
@@ -23,12 +23,11 @@
   "description": [
       "使用任务batch=2",
       "使用300维度的GloVe初始化",
-      "数据分割为1",
       "序列长度为300",
       "提前终止的标准为loss",
-      "使用adam优化",
+      "使用sgd优化",
       "使用1层BiLSTM编码,使用1dCNN解码",
-      "使用sequence和image的cat",
+      "使用基于resnet18的image和sequence",
       "初始学习率为1e-3"
   ],
 
@@ -46,7 +45,7 @@
     },
 
     "conv_backbone": {
-      "type": "conv-4",
+      "type": "resnet18",
       "params": {
         "conv-n": {
           "channels": [1,32,64,128,256],
@@ -66,31 +65,29 @@
         "bidirectional": true,
         "hidden_size" : 128,
         "layer_num" : 1,
-        "dropout": 0.5
-      },
+        "dropout": 0.5,
 
-      "self_attention": {
-        "enabled": false,
-        "type": "custom",
-
-        "params": {
-          "self_att_dim": null,
-          "multi_head_att_head_num": 4
-        }
-      },
-
-      "temporal_conv": {
-        "enabled": true,
-
-        "params": {
-          "kernel_sizes": [3],
-          "paddings": [1],
-          "relus": [true],
-          "pools": ["ada"],
-          "bn": [true]
+        "modules": {
+          "self_attention": {
+            "enabled": false,
+            "type": "custom",
+            "params": {
+              "self_att_dim": null,
+              "multi_head_att_head_num": 4
+            }
+          },
+          "temporal_conv": {
+            "enabled": true,
+            "params": {
+              "kernel_sizes": [3],
+              "paddings": [1],
+              "relus": [true],
+              "pools": ["ada"],
+              "bn": [true]
+            }
+          }
         }
       }
-
     },
 
     "regularization" : {
@@ -135,7 +132,7 @@
 
   "optimize": {
     "loss_function": "nll",
-    "optimizer": "adam",
+    "optimizer": "sgd",
     "default_lr": 1e-3,
     "custom_lrs": {},
     "weight_decay": 5e-4,
@@ -150,7 +147,7 @@
   },
 
   "visualization": {
-    "enabled" : true,
+    "enabled" : false,
     "type": "visdom",
     "record_gradient": false,
     "gradient_update_cycle": 1000,

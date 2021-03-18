@@ -1,12 +1,12 @@
 {
   "task": {
-    "dataset": "LargePE-Per35",
+    "dataset": "virushare-20",
 
     "k": 5,
     "n": 5,
     "qk": 5,
 
-    "version": 10,
+    "version": -1,
 
     "device_id": 0
   },
@@ -15,7 +15,8 @@
   "testing_epoch" : 5000,
   "report_iter": 100,
   "data_source": [
-    "sequence"
+    "sequence",
+    "image"
   ],
   "load_type": "best",
   "test_subset": "test",
