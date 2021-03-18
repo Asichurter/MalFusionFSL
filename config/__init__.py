@@ -51,4 +51,12 @@ def reloadAllTestConfig(cfg_path):
     optimize = OptimizeConfig(new_run_cfg)
     params = ParamsConfig(new_run_cfg)
 
+    # 加载训练时数据源作为测试时数据源
+    _recoverTrainDataSource(new_run_cfg)
+
     _setCudaDevice(test.Task)
+
+
+def _recoverTrainDataSource(train_run_config):
+    if test.DataSource is None:
+        test.DataSource = train_run_config['training']['data_source']

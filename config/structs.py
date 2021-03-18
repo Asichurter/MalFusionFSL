@@ -39,7 +39,7 @@ class TaskConfig:
         self.DeviceId =cfg['task']['device_id']
 
 class TrainingConfig:
-    def __init__(self, cfg):
+    def __init__(self, cfg):             
         self.TrainEpoch = int(cfg['training']['epoch'])
         self.DataSource = cfg['training']['data_source']
         self.ValCycle = int(cfg['validate']['val_cycle'])
@@ -95,7 +95,10 @@ class TestConfig:
         self.Metrics = cfg['metrics']
         self.Desc = cfg['description']
         self.ReportIter= cfg['report_iter']
-        self.DataSource = cfg['data_source']
+
+        if cfg['data_source'] is None:
+            self.DataSource = cfg['data_source']
+
         self.LoadType = cfg['load_type']
 
     def desc(self):

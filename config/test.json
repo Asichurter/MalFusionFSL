@@ -6,7 +6,7 @@
     "n": 5,
     "qk": 5,
 
-    "version": -1,
+    "version": 22,
 
     "device_id": 0
   },
@@ -14,10 +14,7 @@
   "model_name" :  "ProtoNet",
   "testing_epoch" : 5000,
   "report_iter": 100,
-  "data_source": [
-    "sequence",
-    "image"
-  ],
+  "data_source": null,
   "load_type": "best",
   "test_subset": "test",
   "metrics": ["acc"],

@@ -6,9 +6,9 @@
     "n": 5,
     "qk": 5,
 
-    "version": 21,
+    "version": 23,
 
-    "device_id": 3
+    "device_id": 0
   },
 
   "training": {
@@ -27,15 +27,18 @@
       "提前终止的标准为loss",
       "使用sgd优化",
       "使用1层BiLSTM编码,使用1dCNN解码",
-      "使用基于resnet18的image和sequence",
+      "使用image和sequence的双线性层",
       "初始学习率为1e-3"
   ],
 
   "model": {
     "model_name" :  "ProtoNet",
-    "feature_dim": null,
+    "feature_dim": 64,
     "fusion": {
-        "type": "cat"
+        "type": "bili",
+        "params": {
+          "output_dim": 256
+        }
     },
 
     "embedding": {
@@ -45,7 +48,7 @@
     },
 
     "conv_backbone": {
-      "type": "resnet18",
+      "type": "conv-4",
       "params": {
         "conv-n": {
           "channels": [1,32,64,128,256],
@@ -147,7 +150,7 @@
   },
 
   "visualization": {
-    "enabled" : false,
+    "enabled" : true,
     "type": "visdom",
     "record_gradient": false,
     "gradient_update_cycle": 1000,
