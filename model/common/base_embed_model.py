@@ -42,6 +42,7 @@ class BaseProtoModel(BaseModel):
             if model_params.SeqBackbone['seq_type'] == 'LSTM':
                 self.SeqEncoder = BaseLSTMEmbedder(model_params, path_manager)
                 self.SeqEmbedPipeline.append(lambda x, lens: self.SeqEncoder(x, lens))
+                hidden_size = self.SeqEncoder.HiddenSize
             else:
                 # TODO: 实现的其他方法的同时需要赋值hidden_size
                 raise NotImplementedError("[ModelInit] Sequence modeling part has not been implemented " +

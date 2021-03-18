@@ -39,6 +39,8 @@ class BaseLSTMEmbedder(nn.Module):
             raise NotImplementedError("[ModelInit] Self-attention part has not been implemented " +
                                       "except for 'self-att' and 'temporal_conv'")
 
+        self.HiddenSize = hidden_size
+
     def forward(self, x, lens=None):
         x = self.LSTM(x, lens)
         x = self.SeqReduction(x, lens)
