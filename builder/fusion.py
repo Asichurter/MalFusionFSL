@@ -1,6 +1,7 @@
 import config
 # from model.common.base import BaseProtoModel
-from comp.nn.fusion.plain_fusion import SeqOnlyFusion, ImgOnlyFusion, CatFusion, AddFusion
+from comp.nn.fusion.plain_fusion import *
+from comp.nn.fusion.linear_fusion import *
 
 
 def buildFusion(model,
@@ -35,9 +36,26 @@ def _add(model, train_params: config.ParamsConfig):
     return AddFusion()
 
 
+def _prod(model, train_params: config.ParamsConfig):
+    sdim, idim = model.SeqFeatureDim, model.ImgFeatureDim
+    assert sdim == idim, f'使用product作为fusion时，序列和图像的输出特征维度必须相同: ' \
+                         f'seq_dim={sdim}, img_dim={idim}'
+    model.FusedFeatureDim = sdim
+    return ProductFusion()
+
+
+def _bilinear(model, train_params: config.ParamsConfig):
+    sdim, idim = model.SeqFeatureDim, model.ImgFeatureDim
+    output_dim = train_params.Fusion['params']['output_dim']
+    model.FusedFeatureDim = output_dim
+    return BilinearFusion(sdim, idim, output_dim)
+
+
 fusionSwitch = {
-    'sequence': _seq,
-    'image': _img,
-    'cat': _cat,
-    'add': _add
+    'sequence': _seq,       # 只使用序列特征
+    'image': _img,          # 只使用图像特征
+    'cat': _cat,            # 使用序列特征和图像特征的堆叠
+    'add': _add,            # 使用序列特征和图像特征向量之和
+    'prod': _prod,          # 使用序列特征和图像特征向量之积
+    'bili': _bilinear,      # 使用双线性输出融合特征
 }

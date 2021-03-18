@@ -49,3 +49,18 @@ class AddFusion(nn.Module):
 
     def forward(self, seq_features, img_features, **kwargs):
         return seq_features + img_features
+
+
+#####################################
+# 直接取序列特征和图像特征的逐元素相乘，一般需
+# 要重投影
+#####################################
+class ProductFusion(nn.Module):
+
+    def __init__(self):
+        super(ProductFusion, self).__init__()
+
+    def forward(self, seq_features, img_features, **kwargs):
+        return seq_features * img_features
+
+
