@@ -2,6 +2,7 @@ import visdom
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 class EmptyPlot:
     def __init__(self):
         pass
@@ -10,11 +11,12 @@ class EmptyPlot:
         # do nothing
         pass
 
+
 class VisdomPlot(EmptyPlot):
 
     def __init__(self, env_title, types, titles, xlabels, ylabels, legends):
         super().__init__()
-        self.Handle = visdom.Visdom(env=env_title)
+        self.Handle = visdom.Visdom(server="http://127.0.0.1", port=8097, env=env_title)
         self.Types = {title: type_ for title,type_ in zip(titles, types)}
         self.XLabels = {title: xlabel for title, xlabel in zip(titles, xlabels)}
         self.YLabels = {title: ylabel for title, ylabel in zip(titles, ylabels)}
@@ -51,6 +53,7 @@ class VisdomPlot(EmptyPlot):
         else:
             raise NotImplementedError('[VisdomPlot] Not supported type: %s'%t)
 
+
 def plotLine(points_list,
              label_list,
              title='',
@@ -58,7 +61,8 @@ def plotLine(points_list,
              color_list=['red'],
              style_list=['-'],
              grid=True,
-             xlim=None, ylim=None,
+             xlim=None,
+             ylim=None,
              save_path=None):
 
     if xlim is not None:

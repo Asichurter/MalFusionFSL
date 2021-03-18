@@ -246,7 +246,7 @@ class TrainStatManager:
                  val_report_iter=50,
                  total_iter=50000,
                  metric_num=1,
-                 criteria = "metric",
+                 criteria="metric",
                  criteria_metric_index=0,
                  metric_names=['Acc']):
 

@@ -45,7 +45,10 @@ def saveRunVersionConfig(task_params: config.TaskConfig,
                 '_dataset': task_params.Dataset,
                 'config': task_config,
                 '_time': time.asctime()}
-    ver_cfg = loadJson(ver_cfg_path)
+    try:
+        ver_cfg = loadJson(ver_cfg_path)
+    except FileNotFoundError:
+        ver_cfg = {}
     ver_cfg[str(task_params.Version)] = cfg_pack
 
     dumpJson(ver_cfg, ver_cfg_path, sort=True)
