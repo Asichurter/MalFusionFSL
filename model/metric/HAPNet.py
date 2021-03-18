@@ -3,7 +3,7 @@ import torch.nn as nn
 import warnings
 
 import config
-from model.common.base import BaseProtoModel
+from model.common.base_embed_model import BaseProtoModel
 from comp.nn.other.CNN import CNNBlock2D
 from utils.manager import PathManager
 
@@ -29,11 +29,11 @@ class InstanceAttention(nn.Module):
 class FeatureAttention(nn.Module):
     def __init__(self, k):
         super(FeatureAttention, self).__init__()
-        if k % 2 == 0:
-            warnings.warn("K=%d是偶数将会导致feature_attention中卷积核的宽度为偶数，因此部分将会发生一些变化")
-            attention_paddings = [(k // 2, 0), (k // 2, 0), (0, 0)]
-        else:
-            attention_paddings = [(k // 2, 0), (k // 2, 0), (0, 0)]
+        # if k % 2 == 0:
+        #     warnings.warn("K=%d是偶数将会导致feature_attention中卷积核的宽度为偶数，因此部分将会发生一些变化")
+        #     attention_paddings = [(k // 2, 0), (k // 2, 0), (0, 0)]
+        # else:
+        attention_paddings = [(k // 2, 0), (k // 2, 0), (0, 0)]
         attention_channels = [1, 32, 64, 1]
         attention_strides = [(1, 1), (1, 1), (k, 1)]
         attention_kernels = [(k, 1), (k, 1), (k, 1)]

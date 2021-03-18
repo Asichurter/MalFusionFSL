@@ -5,7 +5,7 @@ from utils.training import repeatProtoToCompShape, \
                             repeatQueryToCompShape, \
                             protoDisAdapter
 
-from model.common.base import BaseProtoModel
+from model.common.base_embed_model import BaseProtoModel
 import config
 from utils.manager import PathManager
 from utils.profiling import ClassProfiler
