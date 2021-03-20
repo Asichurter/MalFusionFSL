@@ -46,16 +46,36 @@ def _prod(model, train_params: config.ParamsConfig):
 
 def _bilinear(model, train_params: config.ParamsConfig):
     sdim, idim = model.SeqFeatureDim, model.ImgFeatureDim
+
     output_dim = train_params.Fusion['params']['output_dim']
+    # 部分之前完成的version中没有norm_type参数，运行时手动修改config适配一下
+    normalization_type = train_params.Fusion['params']['bili_norm_type']
+    use_affine = train_params.Fusion['params']['bili_affine']
+
     model.FusedFeatureDim = output_dim
-    return BilinearFusion(sdim, idim, output_dim)
+    return BilinearFusion(sdim, idim, output_dim, normalization_type, use_affine)
+
+
+def _hdmBilinear(model, train_params: config.ParamsConfig):
+    sdim, idim = model.SeqFeatureDim, model.ImgFeatureDim
+
+    output_dim = train_params.Fusion['params']['output_dim']
+    hidden_dim = train_params.Fusion['params']['hidden_dim']
+    normalization_type = train_params.Fusion['params']['bili_norm_type']
+    use_affine = train_params.Fusion['params']['bili_affine']
+
+    model.FusedFeatureDim = output_dim
+    return HdmProdBilinearFusion(sdim, idim, hidden_dim, output_dim,
+                                 normalization_type, use_affine)
+
 
 
 fusionSwitch = {
-    'sequence': _seq,       # 只使用序列特征
-    'image': _img,          # 只使用图像特征
-    'cat': _cat,            # 使用序列特征和图像特征的堆叠
-    'add': _add,            # 使用序列特征和图像特征向量之和
-    'prod': _prod,          # 使用序列特征和图像特征向量之积
-    'bili': _bilinear,      # 使用双线性输出融合特征
+    'sequence': _seq,           # 只使用序列特征
+    'image': _img,              # 只使用图像特征
+    'cat': _cat,                # 使用序列特征和图像特征的堆叠
+    'add': _add,                # 使用序列特征和图像特征向量之和
+    'prod': _prod,              # 使用序列特征和图像特征向量之积
+    'bili': _bilinear,          # 使用双线性输出融合特征,
+    "hdm_bili": _hdmBilinear,   # 使用Hadamard积的分解双线性融合
 }
