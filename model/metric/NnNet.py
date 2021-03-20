@@ -36,7 +36,7 @@ class NnNet(BaseProtoModel):
         # 直接使用seq和img的raw output进行fuse
         support_fused_features = self._fuse(embedded_support_seqs, embedded_support_imgs, fuse_dim=2)
         query_fused_features = self._fuse(embedded_query_seqs, embedded_query_imgs, fuse_dim=1)
-        dim = support_fused_features.size(2)
+        dim = support_fused_features.size(1)
 
         # 原型向量
         # shape: [n, dim]

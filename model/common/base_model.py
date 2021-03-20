@@ -74,6 +74,7 @@ class BaseModel(nn.Module):
         self.TaskParams = config.EpisodeTaskConfig(k, n, qk)
         self.ImageW = w
 
+    # 3.20修改：不再对support提供按类的view，直接输出整个support的batch
     def embed(self,
               support_seqs, query_seqs,
               support_lens, query_lens,
@@ -87,22 +88,22 @@ class BaseModel(nn.Module):
         # 提取任务结构时，已经判断过支持集和查询集的数据一致性，此处做单侧判断即可
         if support_seqs is not None:
             support_seqs = support_seqs.view(n * k, -1)
-            support_seqs = self._seqEmbed(support_seqs, support_lens).view(n, k, -1)
+            support_seqs = self._seqEmbed(support_seqs, support_lens)   # .view(n, k, -1) # embed中不再默认提供整形
             query_seqs = self._seqEmbed(query_seqs, query_lens)
 
-            assert support_seqs.size(2) == query_seqs.size(1), \
+            assert support_seqs.size(1) == query_seqs.size(1), \
                 "[BaseProtoModel.Embed] Support/query sequences' feature dimension size must match: (%d,%d)" \
-                % (support_seqs.size(2), query_seqs.size(1))
+                % (support_seqs.size(1), query_seqs.size(1))
 
         # 提取任务结构时，已经判断过支持集和查询集的数据一致性，此处做单侧判断即可
         if support_imgs is not None:
             support_imgs = support_imgs.view(n*k, 1, w, w)      # 默认为单通道图片
-            support_imgs = self._imgEmbed(support_imgs).view(n, k, -1)
+            support_imgs = self._imgEmbed(support_imgs)     # .view(n, k, -1)   # embed中不再默认提供整形
             query_imgs = self._imgEmbed(query_imgs).squeeze()
 
-            assert support_imgs.size(2) == query_imgs.size(1), \
+            assert support_imgs.size(1) == query_imgs.size(1), \
                 "[BaseProtoModel.Embed] Support/query images' feature dimension size must match: (%d,%d)"\
-                %(support_imgs.size(2),query_imgs.size(1))
+                %(support_imgs.size(1),query_imgs.size(1))
 
         return support_seqs, query_seqs, support_imgs, query_imgs
 
