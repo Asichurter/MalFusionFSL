@@ -62,7 +62,8 @@ class OptimizeConfig:
 class ParamsConfig:
     def __init__(self, cfg):
         self.ModelName = cfg['model']['model_name']
-        self.FeatureDim = cfg['model']['feature_dim']
+        self.Reproject = cfg['model']['reproject']
+        # self.FeatureDim = cfg['model']['feature_dim']
         self.Fusion = cfg['model']['fusion']
         self.Embedding = cfg['model']['embedding']
         self.SeqBackbone = cfg['model']['sequence_backbone']

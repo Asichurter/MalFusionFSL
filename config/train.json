@@ -6,13 +6,13 @@
     "n": 5,
     "qk": 5,
 
-    "version": 23,
+    "version": 24,
 
     "device_id": 0
   },
 
   "training": {
-    "epoch": 40000,
+    "epoch": 30000,
     "data_source": [
       "sequence",
       "image"
@@ -27,17 +27,27 @@
       "提前终止的标准为loss",
       "使用sgd优化",
       "使用1层BiLSTM编码,使用1dCNN解码",
-      "使用image和sequence的双线性层",
-      "初始学习率为1e-3"
+      "使用image和sequence的双线性层,不使用仿射函数和偏置",
+      "初始学习率为1e-3",
+      "FCProject: 无非线性激活,dim=64，ln标准化"
   ],
 
   "model": {
     "model_name" :  "ProtoNet",
-    "feature_dim": 64,
+    "reproject": {
+      "enabled": true,
+      "params": {
+        "out_dim": 128,
+        "non_linear": null
+      }
+    },
     "fusion": {
         "type": "bili",
         "params": {
-          "output_dim": 256
+          "bili_norm_type": "ln",
+          "bili_affine": false,
+          "hidden_dim": 128,
+          "output_dim": 64
         }
     },
 
@@ -55,7 +65,8 @@
           "kernel_sizes": [3,3,3,3],
           "padding_sizes": [1,1,1,1],
           "strides": [2,1,1,1],
-          "nonlinears": [true, true, true, false]
+          "nonlinears": [true, true, true, false],
+          "global_pooling": true
         }
       }
     },
@@ -94,7 +105,7 @@
     },
 
     "regularization" : {
-      "dropout": 0.5
+      "dropout": 0.2
     },
 
     "more": {

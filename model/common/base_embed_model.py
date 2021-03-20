@@ -8,9 +8,10 @@ from comp.nn.image.resnet import ResNet18
 from comp.nn.reduction.CNN import CNNEncoder1D
 from comp.nn.reduction.selfatt import BiliAttnReduction
 from comp.nn.embedder.lstm_based import BaseLSTMEmbedder
+from comp.nn.other.reproject import FCProject
 import config
 from utils.manager import PathManager
-from builder.fusion import buildFusion
+from builder.fusion_builder import buildFusion
 from model.common.base_model import BaseModel
 
 
@@ -49,10 +50,11 @@ class BaseProtoModel(BaseModel):
                                           "except for 'LSTM'")
 
             # re-projecting
-            if model_params.FeatureDim is not None:
-                self.SeqTrans = nn.Sequential(nn.Linear(in_features=hidden_size, out_features=model_params.FeatureDim),
-                                              nn.BatchNorm1d(model_params.FeatureDim))
-                self.SeqFeatureDim = model_params.FeatureDim
+            if model_params.Reproject['enabled']:
+                self.SeqTrans = FCProject(in_dim=hidden_size,
+                                          dropout=model_params.Regularization['dropout'],
+                                          **model_params.Reproject['params'])
+                self.SeqFeatureDim = model_params.Reproject['params']['out_dim']
             else:
                 self.SeqTrans = nn.Identity()
                 self.SeqFeatureDim = hidden_size
@@ -75,12 +77,12 @@ class BaseProtoModel(BaseModel):
             else:
                 raise NotImplementedError(f'Not implemented image embedding module: {model_params.ConvBackbone["type"]}')
 
-            if model_params.FeatureDim is not None:
+            if model_params.Reproject['enabled']:
                 # 此处默认卷积网络输出的维度是通道数量，即每个feature_map最终都reduce为1x1
-                self.ImgTrans = nn.Sequential(nn.Linear(in_features=model_params.ConvBackbone['params']['conv-n']['channels'][-1],
-                                                        out_features=model_params.FeatureDim),
-                                              nn.BatchNorm1d(model_params.FeatureDim))
-                self.ImgFeatureDim = model_params.FeatureDim
+                self.ImgTrans = FCProject(in_dim=model_params.ConvBackbone['params']['conv-n']['channels'][-1],
+                                          dropout=model_params.Regularization['dropout'],
+                                          **model_params.Reproject['params'])
+                self.ImgFeatureDim = model_params.Reproject['params']['out_dim']
             else:
                 self.ImgTrans = nn.Identity()
 

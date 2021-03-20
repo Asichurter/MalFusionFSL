@@ -3,7 +3,7 @@ import torch.nn as nn
 
 class StackConv2D(nn.Module):
     def __init__(self, channels, kernel_sizes, padding_sizes, strides, nonlinears,
-                 global_pooling=True):
+                 global_pooling=True, **kwargs):
         super(StackConv2D, self).__init__()
         layers = [CNN2DBlock(channels[i], channels[i + 1],
                              stride=strides[1],
