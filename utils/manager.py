@@ -248,7 +248,8 @@ class TrainStatManager:
                  metric_num=1,
                  criteria="metric",
                  criteria_metric_index=0,
-                 metric_names=['Acc']):
+                 metric_names=['Acc'],
+                 verbose=True):
 
         self.TrainStat = StatKernel(train_report_iter, metric_num, metric_names=metric_names)
         self.ValStat = StatKernel(val_report_iter, metric_num, criteria, criteria_metric_index, metric_names)
@@ -263,9 +264,12 @@ class TrainStatManager:
         self.TrainReportIter = train_report_iter
         self.ValReportIter = val_report_iter
 
+        self.Verbose = verbose
+
     def begin(self):
-        self._printNextTip()
-        self.Timer.begin()
+        if self.Verbose:
+            self._printNextTip()
+            self.Timer.begin()
 
     def recordTrain(self, metric, loss):
         self.TrainStat.record(metric, loss)
@@ -285,16 +289,17 @@ class TrainStatManager:
             if self.SaveLastestModelFlag and self.ModelSavePath is not None:
                 t.save(model.state_dict(), self.ModelSavePath+'_latest')
 
-            self._printTaskSummary()
-            self._printBlockSeg()
-            self.TrainStat.printRecent(title='Train', all_time=False)
-            self._printSectionSeg()
-            self.ValStat.printRecent(title='Val', all_time=False)
-            self.ValStat.printBest(title='Val')
-            self._printSectionSeg()
-            self.Timer.step(step_stride=self.TrainReportIter, prt=True, end=False)
-            self._printBlockSeg()
-            self._printNextTip()
+            if self.Verbose:
+                self._printTaskSummary()
+                self._printBlockSeg()
+                self.TrainStat.printRecent(title='Train', all_time=False)
+                self._printSectionSeg()
+                self.ValStat.printRecent(title='Val', all_time=False)
+                self.ValStat.printBest(title='Val')
+                self._printSectionSeg()
+                self.Timer.step(step_stride=self.TrainReportIter, prt=True, end=False)
+                self._printBlockSeg()
+                self._printNextTip()
 
     def dumpStatHist(self):
         res = {
@@ -354,7 +359,8 @@ class TestStatManager:
                  test_report_iter=100,
                  total_iter=50000,
                  metric_num=1,
-                 metric_names=['Acc']):
+                 metric_names=['Acc'],
+                 verbose=True):
 
         self.TestStat = StatKernel(test_report_iter, metric_num, metric_names=metric_names)
         self.StatSavePath = stat_save_path
@@ -363,20 +369,23 @@ class TestStatManager:
         self.TotalIter = total_iter
         self.ReportIter = test_report_iter
 
+        self.Verbose = verbose
+
     def begin(self):
-        self.Timer.begin()
+        if self.Verbose:
+            self.Timer.begin()
 
     def recordTest(self, metric, loss):
         self.TestStat.record(metric, loss)
         self.TestIterCount += 1
 
-        if self.TestIterCount == self.TotalIter:
+        if self.TestIterCount == self.TotalIter and self.Verbose:
             self._printBlockSeg()
             print('Final Statistics:')
             self.TestStat.printAllTime(title="Final Test")
             self.Timer.step(step_stride=self.ReportIter, prt=True, end=True)
 
-        elif self.TestIterCount % self.ReportIter == 0:
+        elif self.TestIterCount % self.ReportIter == 0 and self.Verbose:
             self._printBlockSeg()
             print(self.TestIterCount, "Epoch")
             self.TestStat.printRecent(title="Test", all_time=True)

@@ -48,6 +48,7 @@ class TrainingConfig:
         self.SaveLatest = cfg['validate']['early_stop']['save_latest']
         self.Metrics = cfg['validate']['metrics']
         self.Desc = cfg['description']
+        self.Verbose = cfg['training']['verbose']
 
 class OptimizeConfig:
     def __init__(self, cfg):
@@ -96,6 +97,7 @@ class TestConfig:
         self.Metrics = cfg['metrics']
         self.Desc = cfg['description']
         self.ReportIter= cfg['report_iter']
+        self.Verbose = cfg['verbose']
 
         if cfg['data_source'] is None:
             self.DataSource = cfg['data_source']

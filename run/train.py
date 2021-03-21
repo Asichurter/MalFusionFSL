@@ -11,7 +11,8 @@ from builder import *
 from utils.stat import statParamNumber
 from utils.plot import plotLine
 
-print('[train] Init managers...')
+if config.train.Verbose:
+    print('[train] Init managers...')
 train_path_manager = PathManager(dataset=config.task.Dataset,
                                  subset="train",
                                  version=config.task.Version,
@@ -32,7 +33,8 @@ val_dataset = FusedDataset(val_path_manager.apiData(),
                            config.task.N,
                            config.train.DataSource)
 
-print('[train] building components...')
+if config.train.Verbose:
+    print('[train] building components...')
 train_task = buildTask(train_dataset, config.task, config.params, config.optimize, "Train")
 val_task = buildTask(val_dataset, config.task, config.params, config.optimize, "Validate")
 
@@ -54,7 +56,8 @@ scheduler = buildScheduler(optimizer=optimizer,
                            optimize_params=config.optimize)
 
 # 统计模型参数数量
-statParamNumber(model)
+if config.train.Verbose:
+    statParamNumber(model)
 # 保存运行配置文件
 saveConfigFile(config.params,
                folder_path=train_path_manager.doc(),
@@ -67,7 +70,8 @@ saveRunVersionConfig(config.task,
 
 # model.load_state_dict(torch.load('F:/FSL_mal_data/datasets/LargePE-Per35/models/ProtoNet_v.13_latest'))
 
-print("\n\n[train] Training starts!")
+if config.train.Verbose:
+    print("\n\n[train] Training starts!")
 stat.begin()
 for epoch in range(config.train.TrainEpoch):
     # print("# %d epoch"%epoch)
@@ -103,7 +107,8 @@ for epoch in range(config.train.TrainEpoch):
 
     # validate
     if (epoch + 1) % config.train.ValCycle == 0:
-        print("validate at %d epoch" % (epoch + 1))
+        if config.train.Verbose:
+            print("validate at %d epoch" % (epoch + 1))
         model.validate_state()
         for val_i in range(config.train.ValEpisode):
             supports, querys = val_task.episode()
@@ -124,11 +129,12 @@ for epoch in range(config.train.TrainEpoch):
 
             stat.recordVal(metrics, loss_val.detach().item(), model)
 
-        train_metric, train_loss, val_metric, val_loss = stat.getRecentRecord(metric_idx=0)
-        plot.update(title=config.train.Metrics[0], x_val=epoch, y_val=[[train_metric, val_metric]],
-                    update={'flag': True, 'val': None if epoch // config.train.ValCycle == 0 else 'append'})
-        plot.update(title='loss', x_val=epoch, y_val=[[train_loss, val_loss]],
-                    update={'flag': True, 'val': None if epoch // config.train.ValCycle == 0 else 'append'})
+        if config.train.Verbose:
+            train_metric, train_loss, val_metric, val_loss = stat.getRecentRecord(metric_idx=0)
+            plot.update(title=config.train.Metrics[0], x_val=epoch+1, y_val=[[train_metric, val_metric]],
+                        update={'flag': True, 'val': None if (epoch+1) // config.train.ValCycle <= 1 else 'append'})
+            plot.update(title='loss', x_val=epoch+1, y_val=[[train_loss, val_loss]],
+                        update={'flag': True, 'val': None if (epoch+1) // config.train.ValCycle <= 1 else 'append'})
 
 stat.dumpStatHist()
 plotLine(stat.getHistMetric(idx=0), ('train ' + config.train.Metrics[0], 'val ' + config.train.Metrics[0]),

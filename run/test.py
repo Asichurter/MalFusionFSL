@@ -11,7 +11,8 @@ from builder import *
 from utils.stat import statParamNumber
 from utils.plot import plotLine
 
-print('[test] Init managers...')
+if config.test.Verbose:
+    print('[test] Init managers...')
 test_path_manager = PathManager(dataset=config.test.Task.Dataset,
                                 subset=config.test.Subset,
                                 version=config.test.Task.Version,
@@ -24,7 +25,8 @@ test_dataset = FusedDataset(test_path_manager.apiData(),
                             config.test.Task.N,
                             config.test.DataSource)
 
-print('[test] building components...')
+if config.test.Verbose:
+    print('[test] building components...')
 test_task = buildTask(test_dataset, config.test.Task, config.params, config.optimize, "Test")
 
 stat = buildStatManager(is_train=False,
@@ -42,9 +44,10 @@ state_dict = t.load(test_path_manager.model(load_type=config.test.LoadType))
 model.load_state_dict(state_dict)
 
 # 统计模型参数数量
-statParamNumber(model)
+if config.test.Verbose:
+    statParamNumber(model)
+    print("\n\n[test] Testing starts!")
 
-print("\n\n[test] Testing starts!")
 stat.begin()
 for epoch in range(config.test.Epoch):
     # print("# %d epoch"%epoch)

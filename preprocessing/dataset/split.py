@@ -79,10 +79,11 @@ def splitDataset(dataset_path, validate_ratio=20, test_ratio=20):
 # 本函数用于将训练集，验证集和测试集的数据集分割详情保存到JSON文件
 # 以便复现出实验结果
 ##########################################################
-def dumpDatasetSplitStruct(base_path, dump_path, desc: list):
+def dumpDatasetSplitStruct(base_path, dump_path, desc: list, verbose=True):
     dump = {"desc": desc}
     for split in ['train', 'validate', 'test']:
-        print(f"[dumpDatasetSplitStruct] {split}")
+        if verbose:
+            print(f"[dumpDatasetSplitStruct] {split}")
         folders = []
 
         for folder in os.listdir(base_path+split+'/api'):   # 以api文件夹的为标准
@@ -91,7 +92,9 @@ def dumpDatasetSplitStruct(base_path, dump_path, desc: list):
         dump[split] = folders
 
     dumpJson(dump, dump_path)
-    print('-- Done --')
+
+    if verbose:
+        print('-- Done --')
 
 ##########################################################
 # 本函数用于删除原有数据集train，validate和test文件夹中的数据

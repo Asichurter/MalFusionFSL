@@ -1,180 +1,214 @@
 {
-  "task": {
-    "dataset": "virushare-20",
-
-    "k": 5,
-    "n": 5,
-    "qk": 5,
-
-    "version": 24,
-
-    "device_id": 0
-  },
-
-  "training": {
-    "epoch": 30000,
-    "data_source": [
-      "sequence",
-      "image"
+    "task": {
+        "dataset": "virushare-20",
+        "k": 5,
+        "n": 5,
+        "qk": 5,
+        "version": 29,
+        "device_id": 0
+    },
+    "training": {
+        "epoch": 30000,
+        "data_source": [
+            "sequence",
+            "image"
+        ],
+        "split_version": 1,
+        "verbose": false
+    },
+    "description": [
+        "使用300维度的GloVe初始化",
+        "序列长度为300",
+        "提前终止的标准为loss",
+        "使用sgd优化",
+        "使用1层BiLSTM编码,使用1dCNN解码",
+        "使用image和sequence的双线性层,使用仿射函数，tanh激活，ln标准化",
+        "初始学习率为1e-3",
+        "FCProject: 非线性激活,dim=64"
     ],
-    "split_version": 1
-  },
-
-  "description": [
-      "使用任务batch=2",
-      "使用300维度的GloVe初始化",
-      "序列长度为300",
-      "提前终止的标准为loss",
-      "使用sgd优化",
-      "使用1层BiLSTM编码,使用1dCNN解码",
-      "使用image和sequence的双线性层,不使用仿射函数和偏置",
-      "初始学习率为1e-3",
-      "FCProject: 无非线性激活,dim=64，ln标准化"
-  ],
-
-  "model": {
-    "model_name" :  "ProtoNet",
-    "reproject": {
-      "enabled": true,
-      "params": {
-        "out_dim": 128,
-        "non_linear": null
-      }
-    },
-    "fusion": {
-        "type": "bili",
-        "params": {
-          "bili_norm_type": "ln",
-          "bili_affine": false,
-          "hidden_dim": 128,
-          "output_dim": 64
-        }
-    },
-
-    "embedding": {
-      "use_pretrained": true,
-      "embed_size": 300,
-      "word_count": null
-    },
-
-    "conv_backbone": {
-      "type": "conv-4",
-      "params": {
-        "conv-n": {
-          "channels": [1,32,64,128,256],
-          "kernel_sizes": [3,3,3,3],
-          "padding_sizes": [1,1,1,1],
-          "strides": [2,1,1,1],
-          "nonlinears": [true, true, true, false],
-          "global_pooling": true
-        }
-      }
-    },
-
-    "sequence_backbone": {
-      "seq_type": "LSTM",
-      "max_seq_len": 300,
-
-      "LSTM": {
-        "bidirectional": true,
-        "hidden_size" : 128,
-        "layer_num" : 1,
-        "dropout": 0.5,
-
-        "modules": {
-          "self_attention": {
-            "enabled": false,
-            "type": "custom",
-            "params": {
-              "self_att_dim": null,
-              "multi_head_att_head_num": 4
-            }
-          },
-          "temporal_conv": {
+    "model": {
+        "model_name": "ProtoNet",
+        "reproject": {
             "enabled": true,
             "params": {
-              "kernel_sizes": [3],
-              "paddings": [1],
-              "relus": [true],
-              "pools": ["ada"],
-              "bn": [true]
+                "out_dim": 128,
+                "non_linear": null
             }
-          }
+        },
+        "fusion": {
+            "type": "bili",
+            "params": {
+                "bili_norm_type": "ln",
+                "bili_affine": true,
+                "bili_non_linear": "tanh",
+                "hidden_dim": 128,
+                "output_dim": 64
+            }
+        },
+        "embedding": {
+            "use_pretrained": true,
+            "embed_size": 300,
+            "word_count": null
+        },
+        "conv_backbone": {
+            "type": "conv-4",
+            "params": {
+                "conv-n": {
+                    "channels": [
+                        1,
+                        32,
+                        64,
+                        128,
+                        256
+                    ],
+                    "kernel_sizes": [
+                        3,
+                        3,
+                        3,
+                        3
+                    ],
+                    "padding_sizes": [
+                        1,
+                        1,
+                        1,
+                        1
+                    ],
+                    "strides": [
+                        2,
+                        1,
+                        1,
+                        1
+                    ],
+                    "nonlinears": [
+                        true,
+                        true,
+                        true,
+                        false
+                    ],
+                    "global_pooling": true
+                }
+            }
+        },
+        "sequence_backbone": {
+            "seq_type": "LSTM",
+            "max_seq_len": 300,
+            "LSTM": {
+                "bidirectional": true,
+                "hidden_size": 128,
+                "layer_num": 1,
+                "dropout": 0.5,
+                "modules": {
+                    "self_attention": {
+                        "enabled": false,
+                        "type": "custom",
+                        "params": {
+                            "self_att_dim": null,
+                            "multi_head_att_head_num": 4
+                        }
+                    },
+                    "temporal_conv": {
+                        "enabled": true,
+                        "params": {
+                            "kernel_sizes": [
+                                3
+                            ],
+                            "paddings": [
+                                1
+                            ],
+                            "relus": [
+                                true
+                            ],
+                            "pools": [
+                                "ada"
+                            ],
+                            "bn": [
+                                true
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "regularization": {
+            "dropout": 0.2
+        },
+        "more": {
+            "temperature": 1
+        },
+        "cluster": {
+            "cluster_num_step": 1
+        },
+        "model_feature": {
+            "feat": {
+                "set_to_set_func": "transformer",
+                "contrastive_factor": 0.1,
+                "avg": "post",
+                "deepset_hidden_dim": 128,
+                "trans_dropout": 0.5,
+                "trans_head_nums": 1
+            }
+        },
+        "data_parallel": {
+            "data_parallel": false,
+            "data_parallel_devices": null
         }
-      }
     },
-
-    "regularization" : {
-      "dropout": 0.2
+    "validate": {
+        "val_cycle": 100,
+        "val_episode": 50,
+        "metrics": [
+            "acc"
+        ],
+        "early_stop": {
+            "criteria": "loss",
+            "save_latest": true
+        }
     },
-
-    "more": {
-      "temperature": 1
+    "optimize": {
+        "loss_function": "nll",
+        "optimizer": "sgd",
+        "default_lr": 0.001,
+        "custom_lrs": {},
+        "weight_decay": 0.0005,
+        "task_batch": 1,
+        "scheduler": {
+            "type": "step",
+            "lr_decay_iters": 15000,
+            "lr_decay_gamma": 0.1
+        }
     },
-
-    "cluster": {
-      "cluster_num_step": 1
-    },
-
-    "model_feature": {
-      "feat": {
-        "set_to_set_func": "transformer",
-        "contrastive_factor": 0.1,
-        "avg": "post",
-        "deepset_hidden_dim": 128,
-        "trans_dropout": 0.5,
-        "trans_head_nums": 1
-      }
-    },
-
-    "data_parallel": {
-      "data_parallel": false,
-      "data_parallel_devices": null
+    "visualization": {
+        "enabled": false,
+        "type": "visdom",
+        "record_gradient": false,
+        "gradient_update_cycle": 1000,
+        "plot": {
+            "types": [
+                "line",
+                "line"
+            ],
+            "titles": [
+                "acc",
+                "loss"
+            ],
+            "xlabels": [
+                "iterations",
+                "iterations"
+            ],
+            "ylabels": [
+                "accuracy",
+                "loss"
+            ],
+            "legends": [
+                [
+                    "train acc",
+                    "val acc"
+                ],
+                [
+                    "train loss",
+                    "val loss"
+                ]
+            ]
+        }
     }
-  },
-
-  "validate": {
-    "val_cycle": 100,
-    "val_episode": 50,
-    "metrics": ["acc"],
-
-    "early_stop": {
-      "criteria": "loss",
-      "save_latest": true
-    }
-  },
-
-  "optimize": {
-    "loss_function": "nll",
-    "optimizer": "sgd",
-    "default_lr": 1e-3,
-    "custom_lrs": {},
-    "weight_decay": 5e-4,
-    "task_batch": 1,
-
-
-    "scheduler": {
-      "type": "step",
-      "lr_decay_iters": 15000,
-      "lr_decay_gamma": 0.1
-    }
-  },
-
-  "visualization": {
-    "enabled" : true,
-    "type": "visdom",
-    "record_gradient": false,
-    "gradient_update_cycle": 1000,
-
-    "plot" : {
-      "types" : ["line", "line"],
-      "titles": ["acc", "loss"],
-      "xlabels" : ["iterations", "iterations"],
-      "ylabels" : ["accuracy", "loss"],
-      "legends" : [
-                  ["train acc", "val acc"],
-                  ["train loss", "val loss"]
-      ]
-    }
-  }
 }

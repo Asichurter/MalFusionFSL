@@ -20,7 +20,8 @@ def buildStatManager(is_train,
                                    metric_num=len(train_config.Metrics),
                                    criteria=train_config.Criteria,
                                    criteria_metric_index=0,                 # 默认的metric_index是0
-                                   metric_names=train_config.Metrics)
+                                   metric_names=train_config.Metrics,
+                                   verbose=train_config.Verbose)
     else:
         if test_config is None:
             test_config = config.test
@@ -28,6 +29,7 @@ def buildStatManager(is_train,
                                   test_report_iter=test_config.ReportIter,
                                   total_iter=test_config.Epoch,
                                   metric_num=len(test_config.Metrics),
-                                  metric_names=test_config.Metrics)
+                                  metric_names=test_config.Metrics,
+                                  verbose=test_config.Verbose)
 
     return manager
