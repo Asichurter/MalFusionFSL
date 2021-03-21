@@ -1,5 +1,5 @@
 import platform
-import os
+import warnings
 
 from .structs import *
 from .structs import _loadJsonConfig
@@ -60,3 +60,31 @@ def reloadAllTestConfig(cfg_path):
 def _recoverTrainDataSource(train_run_config):
     if test.DataSource is None:
         test.DataSource = train_run_config['training']['data_source']
+
+
+def reloadArbitraryConfig(new_cfg, reload_config_list):
+    global task, train, optimize, params, plot
+    # cfg_name_val_map = {
+    #     'task': (lambda: task, lambda: TaskConfig(new_cfg)),
+    #     'train': (lambda: train, lambda: TrainingConfig(new_cfg)),
+    #     'optimize': (lambda: optimize, lambda: OptimizeConfig(new_cfg)),
+    #     'params': (lambda: params, lambda: ParamsConfig(new_cfg)),
+    #     'plot': (lambda: plot, lambda: PlotConfig(new_cfg))
+    # }
+    #
+    # for cfg_name in config_name_list:
+    #     given_val, giving_val = cfg_name_val_map[cfg_name]
+    #     given_val = giving_val
+    for cfg_name in reload_config_list:
+        if cfg_name == 'task':
+            task = TaskConfig(new_cfg)
+        elif cfg_name == 'train':
+            train = TrainingConfig(new_cfg)
+        elif cfg_name == 'optimize':
+            optimize = OptimizeConfig(new_cfg)
+        elif cfg_name == 'params':
+            params = ParamsConfig(new_cfg)
+        elif cfg_name == 'plot':
+            plot = PlotConfig(new_cfg)
+        else:
+            warnings.warn(f'[reloadListedConfig] Unrecognized config name: {cfg_name}')
