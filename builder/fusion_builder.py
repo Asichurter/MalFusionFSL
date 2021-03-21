@@ -1,5 +1,4 @@
 import config
-# from model.common.base import BaseProtoModel
 from comp.nn.fusion.plain_fusion import *
 from comp.nn.fusion.linear_fusion import *
 
@@ -46,28 +45,16 @@ def _prod(model, train_params: config.ParamsConfig):
 
 def _bilinear(model, train_params: config.ParamsConfig):
     sdim, idim = model.SeqFeatureDim, model.ImgFeatureDim
+    model.FusedFeatureDim = train_params.Fusion['params']['output_dim']
 
-    output_dim = train_params.Fusion['params']['output_dim']
-    # 部分之前完成的version中没有norm_type参数，运行时手动修改config适配一下
-    normalization_type = train_params.Fusion['params']['bili_norm_type']
-    use_affine = train_params.Fusion['params']['bili_affine']
-
-    model.FusedFeatureDim = output_dim
-    return BilinearFusion(sdim, idim, output_dim, normalization_type, use_affine)
+    return BilinearFusion(sdim, idim, **train_params.Fusion['params'])
 
 
 def _hdmBilinear(model, train_params: config.ParamsConfig):
     sdim, idim = model.SeqFeatureDim, model.ImgFeatureDim
+    model.FusedFeatureDim = train_params.Fusion['params']['output_dim']
 
-    output_dim = train_params.Fusion['params']['output_dim']
-    hidden_dim = train_params.Fusion['params']['hidden_dim']
-    normalization_type = train_params.Fusion['params']['bili_norm_type']
-    use_affine = train_params.Fusion['params']['bili_affine']
-
-    model.FusedFeatureDim = output_dim
-    return HdmProdBilinearFusion(sdim, idim, hidden_dim, output_dim,
-                                 normalization_type, use_affine)
-
+    return HdmProdBilinearFusion(sdim, idim, **train_params.Fusion['params'])
 
 
 fusionSwitch = {

@@ -8,7 +8,10 @@ import torch
 ###########################################
 class BilinearFusion(nn.Module):
 
-    def __init__(self, seq_dim, img_dim, output_dim=256, bili_norm_type='bn', bili_affine=False):
+    def __init__(self, seq_dim, img_dim,
+                 output_dim,
+                 bili_norm_type, bili_affine, bili_non_linear,
+                 **kwargs):
         super(BilinearFusion, self).__init__()
         self.Trans = nn.Bilinear(seq_dim, img_dim, output_dim, bias=False)
 
@@ -21,11 +24,20 @@ class BilinearFusion(nn.Module):
         else:
             raise ValueError(f'[BilinearFusion] Unrecognized normalization type: {bili_norm_type}')
 
+        if bili_non_linear is None:
+            self.NonLinear = nn.Identity()
+        elif bili_non_linear == 'tanh':
+            self.NonLinear = nn.Tanh()
+        elif bili_non_linear == 'sigmoid':
+            self.NonLinear = nn.Sigmoid()
+        else:
+            raise ValueError(f'[BilinearFusion] Unrecognized non-linear type: {bili_non_linear}')
+
     def forward(self, seq_features, img_features, **kwargs):
         fused_features = self.Trans(seq_features, img_features)
         fused_features = self.Norm(fused_features)
 
-        return fused_features
+        return self.NonLinear(fused_features)
 
 
 ################################################
@@ -36,8 +48,10 @@ class BilinearFusion(nn.Module):
 ################################################
 class HdmProdBilinearFusion(nn.Module):
 
-    def __init__(self, seq_dim, img_dim, hidden_dim, output_dim,
-                 bili_norm_type=None, bili_affine=False):
+    def __init__(self, seq_dim, img_dim,
+                 hidden_dim, output_dim,
+                 bili_norm_type, bili_affine,
+                 **kwargs):
         super(HdmProdBilinearFusion, self).__init__()
 
         self.SeqTrans = nn.Linear(seq_dim, hidden_dim)
