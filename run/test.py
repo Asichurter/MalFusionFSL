@@ -54,7 +54,7 @@ stat.begin()
 if config.test.Verbose:
     epoch_range = range(config.test.Epoch)
 else:
-    epoch_range = tqdm(range(config.test.Epoch), colour='WHITE')
+    epoch_range = tqdm(range(config.test.Epoch))
 
 for epoch in epoch_range:
     # print("# %d epoch"%epoch)

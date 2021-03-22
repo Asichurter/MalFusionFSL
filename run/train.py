@@ -78,7 +78,7 @@ stat.begin()
 if config.train.Verbose:
     epoch_range = range(config.train.TrainEpoch)
 else:
-    epoch_range = tqdm(range(config.train.TrainEpoch), colour='WHITE')
+    epoch_range = tqdm(range(config.train.TrainEpoch))
 
 for epoch in epoch_range:
     # print("# %d epoch"%epoch)
