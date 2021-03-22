@@ -51,6 +51,7 @@ class HdmProdBilinearFusion(nn.Module):
     def __init__(self, seq_dim, img_dim,
                  hidden_dim, output_dim,
                  bili_norm_type, bili_affine,
+                 bili_non_linear,
                  **kwargs):
         super(HdmProdBilinearFusion, self).__init__()
 
@@ -67,10 +68,19 @@ class HdmProdBilinearFusion(nn.Module):
         else:
             raise ValueError(f'[HdmProdBilinearFusion] Unrecognized normalization type: {bili_norm_type}')
 
+        if bili_non_linear is None:
+            self.NonLinear = nn.Identity()
+        elif bili_non_linear == 'tanh':
+            self.NonLinear = nn.Tanh()
+        elif bili_non_linear == 'sigmoid':
+            self.NonLinear = nn.Sigmoid()
+        else:
+            raise ValueError(f'[HdmProdBilinearFusion] Unrecognized non-linear type: {bili_non_linear}')
+
     def forward(self, seq_features, img_features, **kwargs):
         prod = self.SeqTrans(seq_features) * self.ImgTrans(img_features)
         prod = torch.tanh(prod)     # 使用tanh激活Hadamard积
-        return self.Norm(self.OutTrans(prod))
+        return self.NonLinear(self.Norm(self.OutTrans(prod)))
 
 
 
