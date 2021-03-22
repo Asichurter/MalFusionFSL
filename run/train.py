@@ -1,5 +1,6 @@
 import sys
 import torch
+from tqdm import tqdm
 
 sys.path.append('../')
 
@@ -73,7 +74,13 @@ saveRunVersionConfig(config.task,
 if config.train.Verbose:
     print("\n\n[train] Training starts!")
 stat.begin()
-for epoch in range(config.train.TrainEpoch):
+
+if config.train.Verbose:
+    epoch_range = range(config.train.TrainEpoch)
+else:
+    epoch_range = tqdm(range(config.train.TrainEpoch), colour='WHITE')
+
+for epoch in epoch_range:
     # print("# %d epoch"%epoch)
 
     model.train_state()

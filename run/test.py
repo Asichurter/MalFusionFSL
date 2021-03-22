@@ -1,4 +1,5 @@
 import sys
+from tqdm import tqdm
 
 sys.path.append('../')
 
@@ -49,7 +50,13 @@ if config.test.Verbose:
     print("\n\n[test] Testing starts!")
 
 stat.begin()
-for epoch in range(config.test.Epoch):
+
+if config.test.Verbose:
+    epoch_range = range(config.test.Epoch)
+else:
+    epoch_range = tqdm(range(config.test.Epoch), colour='WHITE')
+
+for epoch in epoch_range:
     # print("# %d epoch"%epoch)
 
     model.test_state()
