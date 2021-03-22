@@ -11,7 +11,7 @@ from utils.file import loadJson
 from utils.manager import PathManager
 
 dataset = 'virushare-20'
-version = 26
+version = 32
 model = 'ProtoNet'
 report_iter = 100
 val_episode = 50
@@ -23,6 +23,8 @@ train_config = loadJson(pm.doc()+'train.json')
 config.reloadArbitraryConfig(train_config, reload_config_list=['plot'])
 config.plot.Enabled = True
 vis = buildPlot(config.plot)
+
+pprint(train_config)
 
 train_metric = np.array(train_stat_data['train']['metrics']).reshape((-1, report_iter))     # 此处假设metric_num=1
 train_loss = np.array(train_stat_data['train']['loss']).reshape((-1, report_iter))

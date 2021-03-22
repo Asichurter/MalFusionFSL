@@ -4,18 +4,23 @@ from pprint import pprint
 from utils.file import loadJson, dumpJson
 
 
+##############################################
+# 任务自动运行机。通过传递每一次运行时train/test config
+# 的修改内容来达到控制任务参数的目的，同时使用命令行运行
+# run目录下的train和test脚本进行任务运行
+##############################################
 class ExecuteMachine:
 
     def __init__(self,
-                 exe_bin='python',
-                 relative_path_config='../config/',
-                 relative_path_run='../run/'):
-
+                 exe_bin='python',                      # python的可执行文件的全称
+                 relative_path_config='../config/',     # 运行位置到config目录的相对位置
+                 relative_path_run='../run/',           # 运行位置到run目录的相对位置
+                 flags={}):                             # 运行flag：对于一对k,v，flag形式为: "-(k) (v)"
         self.ExecuteTaskLines = []
         self.ConfigUpdateLines = []
         self.RelativePathToConfig = relative_path_config
         self.RelativePathToRun = relative_path_run
-        self.Flags = {}
+        self.Flags = flags
         self.ExecuteBin = exe_bin
 
     def addTask(self, task_type='train', update_config_fields={}):
@@ -25,6 +30,9 @@ class ExecuteMachine:
         self.ConfigUpdateLines.append(update_config_fields)
 
     def _setConfig(self, task_type, fields):
+        '''
+        只对给定的config的fields进行设置，没有给定的fields保持config的原值
+        '''
         conf = loadJson(self.RelativePathToConfig+task_type+'.json')
         self._setFields(conf, fields)
         dumpJson(conf, self.RelativePathToConfig+task_type+'.json')
@@ -59,8 +67,12 @@ class ExecuteMachine:
             print(f'\n\n{i}-th {task_type} task\nconfig:')
             pprint(task_config)
             run_script_path = self.RelativePathToRun + task_type + '.py'
+            # 包装，检查参数
             task_config = self._checkAndWrapConfig(task_type, task_config)
+            # 设置参数
             self._setConfig(task_type, task_config)
 
+            # shell运行脚本
             os.system(f'{self.ExecuteBin} {run_script_path} {execute_flags}')
+            
         print(f'[ExecuteMachine] All {len(self.ExecuteTaskLines)} tasks done')
