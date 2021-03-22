@@ -44,17 +44,17 @@ from utils.manager import PathManager
 # convertDir2Image(dir_path='/home/omnisky/NewAsichurter/FusionData/datasets/LargePE-Per40/PEs/',
 #                  dst_path='/home/omnisky/NewAsichurter/FusionData/datasets/LargePE-Per40/all/img/')
 
-pm = PathManager(dataset="LargePE-Per35")
+pm = PathManager(dataset="virushare-20")
 # splitDataset(dataset_path=pm.datasetBase(),
 #              validate_ratio=30,
 #              test_ratio=30)
 
-revertDatasetSplit(dataset="LargePE-Per35", dump_path=pm.dataBase()+"split_2.json")
+# revertDatasetSplit(dataset="virushare-20", dump_path=pm.dataBase()+"split_2.json")
 # dumpDatasetSplitStruct(pm.datasetBase(),
 #                        pm.dataBase()+'split_2.json',
 #                        desc=['ProtoNet: 66%',
 #                              'NnNet: 67~68%'])
-packAllSubsets("LargePE-Per35", num_per_class=35, max_seq_len=300)
+packAllSubsets("virushare-20", num_per_class=20, max_seq_len=300)
 
 
 

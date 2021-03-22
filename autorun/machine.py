@@ -74,5 +74,5 @@ class ExecuteMachine:
 
             # shell运行脚本
             os.system(f'{self.ExecuteBin} {run_script_path} {execute_flags}')
-            
+
         print(f'[ExecuteMachine] All {len(self.ExecuteTaskLines)} tasks done')
