@@ -4,7 +4,7 @@ machine = ExecuteMachine()
 machine.addTask('train',
                 {
                     "task": {
-                        "version": 39
+                        "version": 47
                     },
                     "training": {
                         "epoch": 30000
@@ -15,14 +15,14 @@ machine.addTask('train',
                         "提前终止的标准为loss",
                         "使用sgd优化",
                         "使用1层BiLSTM编码,使用1dCNN解码",
-                        "使用image和sequence的hdm双线性层,不使用仿射函数，不使用激活函数，bn标准化",
+                        "使用image和sequence的hdm双线性层,不使用仿射函数，不使用激活函数，ln标准化",
                         "初始学习率为1e-3",
                         "FCProject: 非线性激活,dim=64"
                     ],
                     "model": {
                         "fusion": {
                             "params": {
-                                "bili_norm_type": "bn",
+                                "bili_norm_type": "ln",
                                 "bili_affine": False,
                                 "bili_non_linear": None
                             }
@@ -37,7 +37,7 @@ machine.addTask('train',
 machine.addTask('train',
                 {
                     "task": {
-                        "version": 40
+                        "version": 48
                     },
                     "training": {
                         "epoch": 30000
@@ -48,14 +48,14 @@ machine.addTask('train',
                         "提前终止的标准为loss",
                         "使用sgd优化",
                         "使用1层BiLSTM编码,使用1dCNN解码",
-                        "使用image和sequence的hdm双线性层,使用仿射函数，不使用激活函数，bn标准化",
+                        "使用image和sequence的hdm双线性层,使用仿射函数，不使用激活函数，ln标准化",
                         "初始学习率为1e-3",
                         "FCProject: 非线性激活,dim=64"
                     ],
                     "model": {
                         "fusion": {
                             "params": {
-                                "bili_norm_type": "bn",
+                                "bili_norm_type": "ln",
                                 "bili_affine": True,
                                 "bili_non_linear": None
                             }
@@ -70,7 +70,7 @@ machine.addTask('train',
 machine.addTask('train',
                 {
                     "task": {
-                        "version": 41
+                        "version": 49
                     },
                     "training": {
                         "epoch": 30000
@@ -81,14 +81,14 @@ machine.addTask('train',
                         "提前终止的标准为loss",
                         "使用sgd优化",
                         "使用1层BiLSTM编码,使用1dCNN解码",
-                        "使用image和sequence的hdm双线性层,不使用仿射函数，使用tanh激活函数，bn标准化",
+                        "使用image和sequence的hdm双线性层,不使用仿射函数，使用tanh激活函数，ln标准化",
                         "初始学习率为1e-3",
                         "FCProject: 非线性激活,dim=64"
                     ],
                     "model": {
                         "fusion": {
                             "params": {
-                                "bili_norm_type": "bn",
+                                "bili_norm_type": "ln",
                                 "bili_affine": False,
                                 "bili_non_linear": "tanh"
                             }
@@ -103,7 +103,7 @@ machine.addTask('train',
 machine.addTask('train',
                 {
                     "task": {
-                        "version": 42
+                        "version": 50
                     },
                     "training": {
                         "epoch": 30000
@@ -114,14 +114,14 @@ machine.addTask('train',
                         "提前终止的标准为loss",
                         "使用sgd优化",
                         "使用1层BiLSTM编码,使用1dCNN解码",
-                        "使用image和sequence的hdm双线性层,使用仿射函数，使用tanh激活函数，bn标准化",
+                        "使用image和sequence的hdm双线性层,使用仿射函数，使用tanh激活函数，ln标准化",
                         "初始学习率为1e-3",
                         "FCProject: 非线性激活,dim=64"
                     ],
                     "model": {
                         "fusion": {
                             "params": {
-                                "bili_norm_type": "bn",
+                                "bili_norm_type": "ln",
                                 "bili_affine": True,
                                 "bili_non_linear": "tanh"
                             }
@@ -136,25 +136,25 @@ machine.addTask('train',
 machine.addTask('test',
                 {
                     "task": {
-                        "version": 39
+                        "version": 47
                     }
                 })
 machine.addTask('test',
                 {
                     "task": {
-                        "version": 40
+                        "version": 48
                     }
                 })
 machine.addTask('test',
                 {
                     "task": {
-                        "version": 41
+                        "version": 49
                     }
                 })
 machine.addTask('test',
                 {
                     "task": {
-                        "version": 42
+                        "version": 50
                     }
                 })
 machine.execute()
