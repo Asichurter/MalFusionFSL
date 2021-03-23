@@ -53,6 +53,7 @@ def _bilinear(model, train_params: config.ParamsConfig):
 def _hdmBilinear(model, train_params: config.ParamsConfig):
     sdim, idim = model.SeqFeatureDim, model.ImgFeatureDim
     model.FusedFeatureDim = train_params.Fusion['params']['output_dim']
+    dropout = train_params.Regularization['dropout']
 
     return HdmProdBilinearFusion(sdim, idim, **train_params.Fusion['params'])
 

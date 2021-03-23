@@ -11,9 +11,15 @@ class BilinearFusion(nn.Module):
     def __init__(self, seq_dim, img_dim,
                  output_dim,
                  bili_norm_type, bili_affine, bili_non_linear,
+                 bili_dropout=None,
                  **kwargs):
         super(BilinearFusion, self).__init__()
         self.Trans = nn.Bilinear(seq_dim, img_dim, output_dim, bias=False)
+
+        if bili_dropout is None:
+            self.Dropout = nn.Identity()
+        else:
+            self.Dropout = nn.Dropout(bili_dropout)
 
         # 使用一个标准化层来约束输出，防止输出值过大
         if bili_norm_type == 'bn':
@@ -35,6 +41,7 @@ class BilinearFusion(nn.Module):
 
     def forward(self, seq_features, img_features, **kwargs):
         fused_features = self.Trans(seq_features, img_features)
+        fused_features = self.Dropout(fused_features)
         fused_features = self.Norm(fused_features)
 
         return self.NonLinear(fused_features)
@@ -52,12 +59,18 @@ class HdmProdBilinearFusion(nn.Module):
                  hidden_dim, output_dim,
                  bili_norm_type, bili_affine,
                  bili_non_linear,
+                 bili_dropout=None,
                  **kwargs):
         super(HdmProdBilinearFusion, self).__init__()
 
         self.SeqTrans = nn.Linear(seq_dim, hidden_dim)
         self.ImgTrans = nn.Linear(img_dim, hidden_dim)
         self.OutTrans = nn.Linear(hidden_dim, output_dim)
+
+        if bili_dropout is None:
+            self.Dropout = nn.Identity()
+        else:
+            self.Dropout = nn.Dropout(bili_dropout)
 
         if bili_norm_type is None:
             self.Norm = nn.Identity()
@@ -80,6 +93,7 @@ class HdmProdBilinearFusion(nn.Module):
     def forward(self, seq_features, img_features, **kwargs):
         prod = self.SeqTrans(seq_features) * self.ImgTrans(img_features)
         prod = torch.tanh(prod)     # 使用tanh激活Hadamard积
+        prod = self.Dropout(prod)   # 目前dropout时添加在激活函数之后的
         return self.NonLinear(self.Norm(self.OutTrans(prod)))
 
 

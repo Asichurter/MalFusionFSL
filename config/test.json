@@ -4,7 +4,7 @@
         "k": 5,
         "n": 5,
         "qk": 5,
-        "version": 38,
+        "version": 51,
         "device_id": 0
     },
     "model_name": "ProtoNet",
@@ -16,7 +16,7 @@
     "metrics": [
         "acc"
     ],
-    "verbose": false,
+    "verbose": true,
     "fine_tuning": {},
     "description": []
 }
