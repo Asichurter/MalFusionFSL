@@ -15,8 +15,11 @@ def makeResultSummary(dataset,
             'version': version,
         }
         pm = PathManager(dataset, version=version)
-        train_config = loadJson(pm.doc()+'train.json')
-        test_results = loadJson(pm.doc()+'test_result.json')
+        try:
+            train_config = loadJson(pm.doc()+'train.json')
+            test_results = loadJson(pm.doc()+'test_result.json')
+        except FileNotFoundError:
+            continue
         ver_sum['model_name'] = train_config['model']['model_name']
         ver_sum['desc'] = train_config['description']
         ver_sum['test_result'] = test_results['test_result']
