@@ -33,11 +33,17 @@ def collectPEwithAPI(api_dir_path,
                 report = loadJson(folder_path+item)
                 name = report['name']
 
+                found_flag = False
                 for pe_folder in pe_folder_map:
                     if name in pe_folder_map[pe_folder]:
                         shutil.copy(pe_dir_path+pe_folder+'/'+name, dst_folder+name)
+                        found_flag = True
                         break
-                reporter.logSuccess()
+                if not found_flag:
+                    reporter.logError(entity=name,
+                                      msg="File not found")
+                else:
+                    reporter.logSuccess()
             except Exception as e:
                 reporter.logError(entity=folder_path+item,
                                   msg=str(e))
@@ -47,10 +53,10 @@ def collectPEwithAPI(api_dir_path,
         reporter.dump(log_dump_path)
 
 if __name__ == '__main__':
-    collectPEwithAPI(api_dir_path='D:/datasets/LargePE-Per40/all/api/',
-                     pe_dir_path='E:/pe/',
-                     dst_path='D:/datasets/LargePE-Per40/all/pe/',
+    collectPEwithAPI(api_dir_path='E:/FSL数据/项目2-动态分析数据/JSONs/virushare-20-3gram-tfidf/all/',
+                     pe_dir_path='E:/FSL数据/项目1-静态分析数据/peimages/PEs/virushare_20/all/',
+                     dst_path='F:/FSL_mal_data/datasets/virushare-20/all/pe/',
                      class_dir=True,
-                     log_dump_path='E:/LargePE-API-raw/reports/pe_collect_log.json')
+                     log_dump_path=None)
 
 
