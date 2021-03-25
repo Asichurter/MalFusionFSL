@@ -79,7 +79,7 @@ class BaseProtoModel(BaseModel):
 
             if model_params.Reproject['enabled']:
                 # 此处默认卷积网络输出的维度是通道数量，即每个feature_map最终都reduce为1x1
-                self.ImgTrans = FCProject(in_dim=model_params.ConvBackbone['params']['conv-n']['channels'][-1],
+                self.ImgTrans = FCProject(in_dim=self.ImgFeatureDim,
                                           dropout=model_params.Regularization['dropout'],
                                           **model_params.Reproject['params'])
                 self.ImgFeatureDim = model_params.Reproject['params']['out_dim']

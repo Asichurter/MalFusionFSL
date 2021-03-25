@@ -18,6 +18,7 @@ test_path_manager = PathManager(dataset=config.test.Task.Dataset,
                                 subset=config.test.Subset,
                                 version=config.test.Task.Version,
                                 model_name=config.test.ModelName)
+# 重新加载训练时的params和optimize参数
 config.reloadAllTestConfig(test_path_manager.doc() + 'train.json')
 
 test_dataset = FusedDataset(test_path_manager.apiData(),
@@ -37,7 +38,7 @@ stat = buildStatManager(is_train=False,
 loss_func = buildLossFunc(optimize_config=config.optimize)
 model = buildModel(path_manager=test_path_manager,
                    model_params=config.params,
-                   task_config=config.task,
+                   task_config=config.test.Task,
                    loss_func=loss_func,
                    data_source=config.test.DataSource)
 
