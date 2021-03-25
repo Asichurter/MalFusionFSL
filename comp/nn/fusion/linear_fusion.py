@@ -1,6 +1,8 @@
 from torch import nn
 import torch
 
+from copy import deepcopy
+
 
 ###########################################
 # 基于双线性的特征融合
@@ -97,4 +99,26 @@ class HdmProdBilinearFusion(nn.Module):
         return self.NonLinear(self.Norm(self.OutTrans(prod)))
 
 
+class ResHdmProdBilinearFusion(HdmProdBilinearFusion):
+    def __init__(self, seq_dim, img_dim,
+                 hidden_dim,                    # 删除了output_dim这个参数
+                 bili_norm_type, bili_affine,
+                 bili_non_linear,
+                 bili_dropout=None,
+                 **kwargs):
+        super_kwargs = deepcopy(kwargs)
+        del super_kwargs['output_dim']        # 删除kw参数中已经存在的output_dim
+        super(ResHdmProdBilinearFusion, self).__init__(seq_dim, img_dim,
+                                                       hidden_dim, seq_dim+img_dim,     # 由于存在残差连接,因此输出维度是seq和img维度之和
+                                                       bili_norm_type, bili_affine,
+                                                       bili_non_linear,
+                                                       bili_dropout,
+                                                       **super_kwargs)
 
+    def forward(self, seq_features, img_features, **kwargs):
+        prod = self.SeqTrans(seq_features) * self.ImgTrans(img_features)
+        prod = torch.tanh(prod)  # 使用tanh激活Hadamard积
+        prod = self.Dropout(prod)  # 目前dropout时添加在激活函数之后的
+        prod = self.NonLinear(self.Norm(self.OutTrans(prod)))
+        cat = torch.cat((seq_features, img_features), dim=1)    # 固定为特征维度（1）进行cat
+        return prod + cat

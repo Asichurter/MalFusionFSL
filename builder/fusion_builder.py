@@ -53,17 +53,24 @@ def _bilinear(model, train_params: config.ParamsConfig):
 def _hdmBilinear(model, train_params: config.ParamsConfig):
     sdim, idim = model.SeqFeatureDim, model.ImgFeatureDim
     model.FusedFeatureDim = train_params.Fusion['params']['output_dim']
-    dropout = train_params.Regularization['dropout']
 
     return HdmProdBilinearFusion(sdim, idim, **train_params.Fusion['params'])
 
 
+def _resHdmBilinear(model, train_params: config.ParamsConfig):
+    sdim, idim = model.SeqFeatureDim, model.ImgFeatureDim
+    model.FusedFeatureDim = sdim + idim     # 残差连接是seq和img的cat，和双线性部分的输出
+
+    return ResHdmProdBilinearFusion(sdim, idim, **train_params.Fusion['params'])
+
+
 fusionSwitch = {
-    'sequence': _seq,           # 只使用序列特征
-    'image': _img,              # 只使用图像特征
-    'cat': _cat,                # 使用序列特征和图像特征的堆叠
-    'add': _add,                # 使用序列特征和图像特征向量之和
-    'prod': _prod,              # 使用序列特征和图像特征向量之积
-    'bili': _bilinear,          # 使用双线性输出融合特征,
-    "hdm_bili": _hdmBilinear,   # 使用Hadamard积的分解双线性融合
+    'sequence': _seq,                   # 只使用序列特征
+    'image': _img,                      # 只使用图像特征
+    'cat': _cat,                        # 使用序列特征和图像特征的堆叠
+    'add': _add,                        # 使用序列特征和图像特征向量之和
+    'prod': _prod,                      # 使用序列特征和图像特征向量之积
+    'bili': _bilinear,                  # 使用双线性输出融合特征,
+    'hdm_bili': _hdmBilinear,           # 使用Hadamard积的分解双线性融合,
+    'res_hdm_bili': _resHdmBilinear,    # 带有cat的残差连接的双线性Hadamard积分解
 }

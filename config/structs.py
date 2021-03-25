@@ -37,6 +37,7 @@ class TaskConfig:
         self.N = Ns[cfg['task']['dataset']]
         self.Version = cfg['task']['version']
         self.DeviceId =cfg['task']['device_id']
+        self.PreloadStateDictVersions = cfg['task'].get('preload_state_dict_versions', [])
 
 class TrainingConfig:
     def __init__(self, cfg):             

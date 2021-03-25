@@ -4,8 +4,9 @@
         "k": 5,
         "n": 5,
         "qk": 5,
-        "version": 51,
-        "device_id": 0
+        "version": -1,
+        "device_id": 0,
+        "preload_state_dict_versions": [15,16]
     },
     "training": {
         "epoch": 30000,
@@ -23,20 +24,21 @@
         "使用sgd优化",
         "使用1层BiLSTM编码,使用1dCNN解码",
         "使用image和sequence的hdm双线性层,使用仿射函数，使用tanh激活函数，bn标准化，重新调整了隐藏层维度",
+        "使用image和sequence的预训练参数preload",
         "初始学习率为1e-3",
-        "FCProject: 非线性激活,dim=128"
+        "不使用重投影（FCProject: 非线性激活,dim=128）"
     ],
     "model": {
         "model_name": "ProtoNet",
         "reproject": {
-            "enabled": true,
+            "enabled": false,
             "params": {
-                "out_dim": 128,
+                "out_dim": 64,
                 "non_linear": null
             }
         },
         "fusion": {
-            "type": "hdm_bili",
+            "type": "cat",
             "params": {
                 "bili_norm_type": "bn",
                 "bili_affine": true,
@@ -179,7 +181,7 @@
         }
     },
     "visualization": {
-        "enabled": true,
+        "enabled": false,
         "type": "visdom",
         "record_gradient": false,
         "gradient_update_cycle": 1000,
