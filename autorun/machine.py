@@ -1,5 +1,6 @@
 import os
 from pprint import pprint
+from copy import deepcopy
 
 from utils.file import loadJson, dumpJson
 
@@ -23,6 +24,19 @@ class ExecuteMachine:
         self.Flags = flags
         self.ExecuteBin = exe_bin
 
+        self.ExecuteSuccessCount = 0
+        self.ExecuteFailCount = 0
+
+        try:
+            # 初始化machine时读取一个config的cache
+            # 防止后续运行多个任务时config被修改导致默认值不一致的问题
+            self.ConfigCache = {
+                'train': loadJson(self.RelativePathToConfig + 'train.json'),
+                'test': loadJson(self.RelativePathToConfig + 'test.json'),
+            }
+        except FileExistsError as e:
+            raise FileNotFoundError(f'[ExecuteMachine] Config file not found: {e}')
+
     def addTask(self, task_type='train', update_config_fields={}):
         if task_type not in ['train', 'test']:
             raise ValueError(f'[ExecuteMachine] Unsupported task type: {task_type}')
@@ -33,7 +47,13 @@ class ExecuteMachine:
         '''
         只对给定的config的fields进行设置，没有给定的fields保持config的原值
         '''
-        conf = loadJson(self.RelativePathToConfig+task_type+'.json')
+        # 修改为读取machine初始化时加载的config的cache
+        # 防止在运行过程中config被修改导致默认值在多个任务运行时不一致的问题
+        if task_type in self.ConfigCache:
+            conf = self.ConfigCache.get(task_type)
+        else:
+            return None
+        # conf = loadJson(self.RelativePathToConfig+task_type+'.json')
         self._setFields(conf, fields)
         dumpJson(conf, self.RelativePathToConfig+task_type+'.json')
 
@@ -44,7 +64,7 @@ class ExecuteMachine:
             elif k in cur_config:
                 self._setFields(cur_config[k], v)
             else:
-                print(f"[ExecuteMachine] Can not find field {k} in {cur_config}, skip")
+                print(f"[ExecuteMachine] Can not find field ’{k}‘ in: {cur_config}, skip")
 
     def _checkAndWrapConfig(self, task_type, conf):
         # 基本检查：设置verbose为false
@@ -73,6 +93,11 @@ class ExecuteMachine:
             self._setConfig(task_type, task_config)
 
             # shell运行脚本
-            os.system(f'{self.ExecuteBin} {run_script_path} {execute_flags}')
+            code = os.system(f'{self.ExecuteBin} {run_script_path} {execute_flags}')
+            if code == 0:
+                self.ExecuteSuccessCount += 1
+            else:
+                self.ExecuteFailCount += 1
 
-        print(f'[ExecuteMachine] All {len(self.ExecuteTaskLines)} tasks done')
+        print(f'[ExecuteMachine] All {len(self.ExecuteTaskLines)} tasks done ' +
+              f'({self.ExecuteSuccessCount} success, {self.ExecuteFailCount} fail)')
