@@ -74,8 +74,17 @@ def _HAPNet(path_manager: PathManager,
     return HAPNet(model_params, path_manager, loss_func, data_source, task_params.Episode.k).cuda()
 
 
+def _SIMPLE(path_manager: PathManager,
+            model_params: config.ParamsConfig,
+            task_params: config.TaskConfig,
+            loss_func,
+            data_source):
+    return SIMPLE(model_params, path_manager, loss_func, data_source).cuda()
+
+
 ModelSwitch = {
     'ProtoNet': _ProtoNet,
     'NnNet': _NnNet,
-    'HAPNet': _HAPNet
+    'HAPNet': _HAPNet,
+    'SIMPLE': _SIMPLE
 }

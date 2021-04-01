@@ -32,7 +32,7 @@ class ProtoNet(BaseProtoModel):
                                                                 support_lens, query_lens,
                                                                 support_imgs, query_imgs)
 
-        # support seqs/imgs shape: [n, k, dim]
+        # support seqs/imgs shape: [n*k, dim]
         # query seqs/imgs shape: [qk, dim]
 
         k, n, qk = self.TaskParams.k, self.TaskParams.n, self.TaskParams.qk
