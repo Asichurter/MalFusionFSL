@@ -2,16 +2,38 @@ import torch
 
 import config
 
+
+def _getLrFromCustomDict(name, dic):
+    for n,l in dic.items():
+        if name.startswith(n):      # 允许指定parameter的prefix来指定一个module中的所有参数的lr
+            return False, l
+    return True, None
+
+
 def buildOptimizer(named_parameters, optimize_params=None):
     if optimize_params is None:
         optimize_params = config.optimize
 
     parameters = []
+    default_pars_group = []
     for name, par in named_parameters:
-        if name in optimize_params.CustomLrs:
-            parameters += [{'params': [par], 'lr': optimize_params.CustomLrs[name]}]
+        is_default, lr = _getLrFromCustomDict(name, optimize_params.CustomLrs)
+        if is_default:
+            default_pars_group.append(par)
         else:
-            parameters += [{'params': [par], 'lr': optimize_params.DefaultLr}]
+            # 添加自定义学习率参数group
+            # 如果lr自定义指定为None，则这一部分不作为参数进行训练
+            if lr is not None:
+                parameters.append({
+                    'params': [par],
+                    'lr': lr
+                })
+
+    # 添加默认学习率参数group
+    parameters.append({
+        'params': default_pars_group,
+        'lr': optimize_params.DefaultLr
+    })
 
     return OptimizerSwitch.get(optimize_params.Optimizer, _sgd)(parameters, optimize_params)
 
