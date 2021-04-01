@@ -4,10 +4,10 @@
         "k": 5,
         "n": 5,
         "qk": 5,
-        "version": -1,
+        "version": 68,
         "device_id": 0
     },
-    "model_name": "ProtoNet",
+    "model_name": "SIMPLE",
     "testing_epoch": 5000,
     "report_iter": 100,
     "data_source": null,

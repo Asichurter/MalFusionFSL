@@ -6,7 +6,7 @@
         "qk": 5,
         "version": -1,
         "device_id": 0,
-        "preload_state_dict_versions": [15,16]
+        "preload_state_dict_versions": []
     },
     "training": {
         "epoch": 30000,
@@ -23,13 +23,14 @@
         "提前终止的标准为loss",
         "使用sgd优化",
         "使用1层BiLSTM编码,使用1dCNN解码",
-        "使用image和sequence的hdm双线性层,使用仿射函数，使用tanh激活函数，bn标准化，重新调整了隐藏层维度",
-        "使用image和sequence的预训练参数preload",
+        "使用进行了stride的conv-n，同时使用global_pooling",
+        "使用image和sequence的cat",
+        "不！使用image和sequence的预训练参数preload",
         "初始学习率为1e-3",
-        "不使用重投影（FCProject: 非线性激活,dim=128）"
+        "不使用重投影。FCProject: 无非线性激活,dim=64"
     ],
     "model": {
-        "model_name": "ProtoNet",
+        "model_name": "SIMPLE",
         "reproject": {
             "enabled": false,
             "params": {
@@ -43,7 +44,8 @@
                 "bili_norm_type": "bn",
                 "bili_affine": true,
                 "bili_non_linear": "tanh",
-                "bili_dropout": null,
+                "bili_dropout": 0.2,
+                "att_dropout": 0.2,
                 "hidden_dim": 64,
                 "output_dim": 64
             }
@@ -57,6 +59,9 @@
             "type": "conv-4",
             "params": {
                 "conv-n": {
+                    "global_pooling": true,
+                    "input_size": 224,
+                    "out_type": "patch",
                     "channels": [
                         1,
                         32,
@@ -87,8 +92,7 @@
                         true,
                         true,
                         false
-                    ],
-                    "global_pooling": true
+                    ]
                 }
             }
         },
@@ -139,7 +143,8 @@
             "temperature": 1
         },
         "cluster": {
-            "cluster_num_step": 1
+            "cluster_num_step": 1,
+            "SIMPLE_init_sigma": 1
         },
         "model_feature": {
             "feat": {
@@ -171,7 +176,11 @@
         "loss_function": "nll",
         "optimizer": "sgd",
         "default_lr": 0.001,
-        "custom_lrs": {},
+        "custom_lrs": {
+            "SeqEncoder": 0.0001,
+            "ImageEmbedding": 0.0001,
+            "Embedding": 0.0001
+        },
         "weight_decay": 0.0005,
         "task_batch": 1,
         "scheduler": {

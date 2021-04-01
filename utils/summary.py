@@ -26,7 +26,7 @@ def makeResultSummary(dataset,
 
         summaries.append(ver_sum)
 
-    pprint(summaries)
+    pprint(summaries, indent=4)
 
     if dump_path is not None:
         dumpJson(summaries, dump_path)
