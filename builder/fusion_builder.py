@@ -1,6 +1,7 @@
 import config
 from comp.nn.fusion.plain_fusion import *
 from comp.nn.fusion.linear_fusion import *
+from comp.nn.fusion.attention_fusion import *
 
 
 def buildFusion(model,
@@ -64,13 +65,45 @@ def _resHdmBilinear(model, train_params: config.ParamsConfig):
     return ResHdmProdBilinearFusion(sdim, idim, **train_params.Fusion['params'])
 
 
+def _seqAttendImgCat(model, train_params: config.ParamsConfig):
+    sdim, idim = model.SeqFeatureDim, model.ImgFeatureDim
+    assert sdim == idim, f'使用seq_attend_img_cat作为fusion时，序列和图像的输出特征维度必须相同: ' \
+                         f'seq_dim={sdim}, img_dim={idim}'
+    model.FusedFeatureDim = sdim + idim
+
+    return SeqAttendImgCatFusion(sdim, idim, **train_params.Fusion['params'])
+
+
+def _seqAttendImgAttOnly(model, train_params: config.ParamsConfig):
+    sdim, idim = model.SeqFeatureDim, model.ImgFeatureDim
+    assert sdim == idim, f'使用seq_attend_img_att_only作为fusion时，序列和图像的输出特征维度必须相同: ' \
+                         f'seq_dim={sdim}, img_dim={idim}'
+    model.FusedFeatureDim = idim
+
+    return SeqAttendImgAttOnlyFusion(sdim, idim, **train_params.Fusion['params'])
+
+
+def _seqAttendImgResAttOnly(model, train_params: config.ParamsConfig):
+    sdim, idim = model.SeqFeatureDim, model.ImgFeatureDim
+    assert sdim == idim, f'使用seq_attend_img_att_only作为fusion时，序列和图像的输出特征维度必须相同: ' \
+                         f'seq_dim={sdim}, img_dim={idim}'
+    model.FusedFeatureDim = idim
+
+    return SeqAttendImgResAttOnlyFusion(sdim, idim, **train_params.Fusion['params'])
+
+
+
+
 fusionSwitch = {
-    'sequence': _seq,                   # 只使用序列特征
-    'image': _img,                      # 只使用图像特征
-    'cat': _cat,                        # 使用序列特征和图像特征的堆叠
-    'add': _add,                        # 使用序列特征和图像特征向量之和
-    'prod': _prod,                      # 使用序列特征和图像特征向量之积
-    'bili': _bilinear,                  # 使用双线性输出融合特征,
-    'hdm_bili': _hdmBilinear,           # 使用Hadamard积的分解双线性融合,
-    'res_hdm_bili': _resHdmBilinear,    # 带有cat的残差连接的双线性Hadamard积分解
+    'sequence': _seq,                                   # 只使用序列特征
+    'image': _img,                                      # 只使用图像特征
+    'cat': _cat,                                        # 使用序列特征和图像特征的堆叠
+    'add': _add,                                        # 使用序列特征和图像特征向量之和
+    'prod': _prod,                                      # 使用序列特征和图像特征向量之积
+    'bili': _bilinear,                                  # 使用双线性输出融合特征,
+    'hdm_bili': _hdmBilinear,                           # 使用Hadamard积的分解双线性融合,
+    'res_hdm_bili': _resHdmBilinear,                    # 带有cat的残差连接的双线性Hadamard积分解,
+    'seq_attend_img_cat': _seqAttendImgCat,             # 序列注意力对齐到图像，返回序列和对齐后的图像的堆叠
+    'seq_attend_img_att_only': _seqAttendImgAttOnly,    # 序列注意力对齐到图像，只返回对齐后的图像,
+    'seq_attend_img_res_att': _seqAttendImgResAttOnly,  # 序列注意力对齐到图像，只返回对齐后的图像的残差和
 }
