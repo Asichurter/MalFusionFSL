@@ -66,8 +66,11 @@ class BaseProtoModel(BaseModel):
             if model_params.ConvBackbone['type'] == 'conv-4':
                 self.ImageEmbedding = StackConv2D(**model_params.ConvBackbone['params']['conv-n'])
                 self.ImgEmbedPipeline.append(lambda x: self.ImageEmbedding(x).squeeze())
+
+                # 即使不使用全局池化，使用patch进行后续处理时，特征维度还是channel数量
+                # 只是在特征前会多一层patch的维度
                 # output shape is the same as last channel number
-                self.ImgFeatureDim = model_params.ConvBackbone['params']['conv-n']['channels'][-1]
+                self.ImgFeatureDim = self.ImageEmbedding.OutputSize
 
             elif model_params.ConvBackbone['type'] == 'resnet18':
                 self.ImageEmbedding = ResNet18()
