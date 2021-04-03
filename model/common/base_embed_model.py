@@ -73,7 +73,8 @@ class BaseProtoModel(BaseModel):
                 self.ImgFeatureDim = self.ImageEmbedding.OutputSize
 
             elif model_params.ConvBackbone['type'] == 'resnet18':
-                self.ImageEmbedding = ResNet18()
+                resnet18_pararms = model_params.ConvBackbone['params'].get('resnet18', {})
+                self.ImageEmbedding = ResNet18(**resnet18_pararms)
                 self.ImgEmbedPipeline.append(lambda x: self.ImageEmbedding(x))
                 self.ImgFeatureDim = 1000   # default output shape of ResNet18 is 1000
 
