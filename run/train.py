@@ -107,6 +107,10 @@ for epoch in epoch_range:
     metrics /= config.optimize.TaskBatch
 
     loss_val.backward()
+    # 裁剪梯度
+    if config.train.ClipGradNorm is not None:
+        torch.nn.utils.clip_grad_norm_(model.parameters(), config.train.ClipGradNorm)
+
     optimizer.step()
     scheduler.step()
 

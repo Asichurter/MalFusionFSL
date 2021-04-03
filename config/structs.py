@@ -50,6 +50,7 @@ class TrainingConfig:
         self.Metrics = cfg['validate']['metrics']
         self.Desc = cfg['description']
         self.Verbose = cfg['training']['verbose']
+        self.ClipGradNorm = cfg['training'].get('clip_grad_norm', None)     # 向下适配
 
 class OptimizeConfig:
     def __init__(self, cfg):

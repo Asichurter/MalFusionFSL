@@ -4,33 +4,32 @@
         "k": 5,
         "n": 5,
         "qk": 5,
-        "version": -1,
+        "version": 75,
         "device_id": 0,
         "preload_state_dict_versions": []
     },
     "training": {
-        "epoch": 30000,
+        "epoch": 40000,
         "data_source": [
             "sequence",
             "image"
         ],
         "split_version": 1,
-        "verbose": true
+        "verbose": true,
+        "clip_grad_norm": 0.5
     },
     "description": [
-        "使用300维度的GloVe初始化",
         "序列长度为300",
-        "提前终止的标准为loss",
         "使用sgd优化",
         "使用1层BiLSTM编码,使用1dCNN解码",
-        "使用进行了stride的conv-n，同时使用global_pooling",
-        "使用image和sequence的cat",
+        "使用了0.5的裁剪梯度，增大训练周期至40000轮",
+        "使用经过了stride的conv-n，使用global_pooling",
+        "使用image和sequence的dnn_cat_ret_cat，三层，维度增大至512",
         "不！使用image和sequence的预训练参数preload",
-        "初始学习率为1e-3",
-        "不使用重投影。FCProject: 无非线性激活,dim=64"
+        "初始学习率为1e-3"
     ],
     "model": {
-        "model_name": "SIMPLE",
+        "model_name": "ProtoNet",
         "reproject": {
             "enabled": false,
             "params": {
@@ -39,15 +38,20 @@
             }
         },
         "fusion": {
-            "type": "cat",
+            "type": "dnn_cat_ret_cat",
             "params": {
                 "bili_norm_type": "bn",
                 "bili_affine": true,
                 "bili_non_linear": "tanh",
                 "bili_dropout": 0.2,
                 "att_dropout": 0.2,
+                "att_scale_factor": 1,
                 "hidden_dim": 64,
-                "output_dim": 64
+                "output_dim": 64,
+
+                "dnn_hidden_dims": [512, 512, 512],
+                "dnn_activations": ["relu", "relu", "none"],
+                "dnn_dropouts": [0.3, 0.3, 0.3]
             }
         },
         "embedding": {
