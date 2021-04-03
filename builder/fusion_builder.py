@@ -2,6 +2,7 @@ import config
 from comp.nn.fusion.plain_fusion import *
 from comp.nn.fusion.linear_fusion import *
 from comp.nn.fusion.attention_fusion import *
+from comp.nn.fusion.dnn_fusion import *
 
 
 def buildFusion(model,
@@ -92,6 +93,22 @@ def _seqAttendImgResAttOnly(model, train_params: config.ParamsConfig):
     return SeqAttendImgResAttOnlyFusion(sdim, idim, **train_params.Fusion['params'])
 
 
+def _dnnCat(model, train_params: config.ParamsConfig):
+    sdim, idim = model.SeqFeatureDim, model.ImgFeatureDim
+    model.FusedFeatureDim = train_params.Fusion['params']['dnn_hidden_dims'][-1]    # 融合后输出维度是dnn的最后一层的神经元数量
+
+    return DNNCatFusion(input_dim=sdim+idim,
+                        **train_params.Fusion['params'])
+
+
+def _dnnCatRetCat(model, train_params: config.ParamsConfig):
+    sdim, idim = model.SeqFeatureDim, model.ImgFeatureDim
+    dnn_out_dim = train_params.Fusion['params']['dnn_hidden_dims'][-1]
+    model.FusedFeatureDim = sdim + dnn_out_dim
+
+    return DNNCatRetCatFusion(input_dim=sdim+idim,
+                              **train_params.Fusion['params'])
+
 
 
 fusionSwitch = {
@@ -106,4 +123,6 @@ fusionSwitch = {
     'seq_attend_img_cat': _seqAttendImgCat,             # 序列注意力对齐到图像，返回序列和对齐后的图像的堆叠
     'seq_attend_img_att_only': _seqAttendImgAttOnly,    # 序列注意力对齐到图像，只返回对齐后的图像,
     'seq_attend_img_res_att': _seqAttendImgResAttOnly,  # 序列注意力对齐到图像，只返回对齐后的图像的残差和
+    'dnn_cat': _dnnCat,                                 # 基于特征cat的MLP特征融合
+    'dnn_cat_ret_cat': _dnnCatRetCat,                   # 基于特征cat的MLP特征融合，返回seq和dnn输出的cat
 }
