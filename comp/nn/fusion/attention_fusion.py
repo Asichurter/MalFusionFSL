@@ -6,11 +6,13 @@ class SeqAttendImgFusion(nn.Module):
     def __init__(self, seq_dim, img_dim,
                  hidden_dim,
                  att_dropout,
+                 att_scale_factor=1,
                  **kwargs):
         super(SeqAttendImgFusion, self).__init__()
         self.SeqTrans = nn.Linear(seq_dim, hidden_dim, bias=False)
         self.ImgTrans = nn.Linear(img_dim, hidden_dim, bias=False)
         self.WeightTrans = nn.Linear(hidden_dim, 1, bias=False)
+        self.AttentionScaleFactor = att_scale_factor
 
         if att_dropout is None:
             self.Dropout = nn.Identity()
@@ -29,7 +31,8 @@ class SeqAttendImgFusion(nn.Module):
         attend_output = self.Dropout(attend_output)
 
         # out shape: [batch, patch, 1]
-        attend_alpha = torch.softmax(self.WeightTrans(attend_output), dim=1)
+        # 使用一个扩增系数加大权重的倾斜程度
+        attend_alpha = torch.softmax(self.AttentionScaleFactor * self.WeightTrans(attend_output), dim=1)
         if res_att:
             res_ones = torch.ones_like(attend_alpha).cuda()
             attend_alpha = attend_alpha + res_ones
