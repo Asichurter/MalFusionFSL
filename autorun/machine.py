@@ -16,6 +16,7 @@ class ExecuteMachine:
                  exe_bin='python',                      # python的可执行文件的全称
                  relative_path_config='../config/',     # 运行位置到config目录的相对位置
                  relative_path_run='../run/',           # 运行位置到run目录的相对位置
+                 check_verbose=True,                    # 是否开启verbose检查，默认为静默模式
                  flags={}):                             # 运行flag：对于一对k,v，flag形式为: "-(k) (v)"
         self.ExecuteTaskLines = []
         self.ConfigUpdateLines = []
@@ -23,6 +24,7 @@ class ExecuteMachine:
         self.RelativePathToRun = relative_path_run
         self.Flags = flags
         self.ExecuteBin = exe_bin
+        self.CheckVerbose = check_verbose
 
         self.ExecuteSuccessCount = 0
         self.ExecuteFailCount = 0
@@ -68,16 +70,17 @@ class ExecuteMachine:
 
     def _checkAndWrapConfig(self, task_type, conf):
         # 基本检查：设置verbose为false
-        if task_type == 'train':
-            if 'training' not in conf:
-                conf['training'] = {
-                    'verbose': False
-                }
-            else:
-                conf['training']['verbose'] = False
+        if self.CheckVerbose:
+            if task_type == 'train':
+                if 'training' not in conf:
+                    conf['training'] = {
+                        'verbose': False
+                    }
+                else:
+                    conf['training']['verbose'] = False
 
-        elif task_type == 'test':
-            conf['verbose'] = False
+            elif task_type == 'test':
+                conf['verbose'] = False
 
         return conf
 
