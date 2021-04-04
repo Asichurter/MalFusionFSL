@@ -3,6 +3,8 @@ from pprint import pprint
 from copy import deepcopy
 
 from utils.file import loadJson, dumpJson
+from utils.manager import PathManager
+from utils.os import joinPath
 
 
 ##############################################
@@ -44,6 +46,14 @@ class ExecuteMachine:
             raise ValueError(f'[ExecuteMachine] Unsupported task type: {task_type}')
         self.ExecuteTaskLines.append(task_type)
         self.ConfigUpdateLines.append(update_config_fields)
+
+    def addRedoTrainTask(self, dataset, version):
+        pm = PathManager(dataset=dataset,
+                         version=version)
+        # 直接读取已做过的实验的config，重新做一次
+        pre_config = loadJson(joinPath(pm.doc(), 'train.json'))
+        self.ExecuteTaskLines.append('train')
+        self.ConfigUpdateLines.append(pre_config)
 
     def _setConfig(self, task_type, fields):
         '''
@@ -88,7 +98,7 @@ class ExecuteMachine:
         execute_flags = ' '.join([f' -{flag_key} {flag_val}' for flag_key, flag_val in self.Flags.items()])
         for i, (task_type, task_config) in enumerate(zip(self.ExecuteTaskLines, self.ConfigUpdateLines)):
             print(f'\n\n{i}-th {task_type} task\nconfig:')
-            pprint(task_config)
+            pprint(task_config, indent=4)
             run_script_path = self.RelativePathToRun + task_type + '.py'
             # 包装，检查参数
             task_config = self._checkAndWrapConfig(task_type, task_config)
