@@ -1,0 +1,7 @@
+Pillow==8.0.1
+glove-python-binary==0.2.0
+numpy==1.19.2
+torch==1.8.0+cu111
+tqdm>=4.50.2
+visdom==0.1.8.9
+matplotlib==3.3.2
