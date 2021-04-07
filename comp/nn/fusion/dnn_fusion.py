@@ -78,3 +78,25 @@ class DNNCatRetCatFusion(_DNNFusion):
         cat_features = self.dnn_forward(cat_features)
         return torch.cat((seq_features, cat_features), dim=fused_dim)       # 返回seq和dnn输出的cat
 
+
+class DNNCatRetCatAllFusion(_DNNFusion):
+    def __init__(self, input_dim,
+                 dnn_hidden_dims,
+                 dnn_activations,
+                 dnn_dropouts,
+                 **kwargs):
+
+        super().__init__(input_dim,
+                         dnn_hidden_dims,
+                         dnn_activations,
+                         dnn_dropouts,
+                         **kwargs)
+
+    def forward(self, seq_features, img_features, fused_dim=1, **kwargs):
+        cat_features = torch.cat((seq_features, img_features), dim=fused_dim)
+        cat_features = self.dnn_forward(cat_features)
+
+        # 返回seq，img和dnn输出的三层cat
+        return torch.cat((seq_features, img_features, cat_features), dim=fused_dim)
+
+

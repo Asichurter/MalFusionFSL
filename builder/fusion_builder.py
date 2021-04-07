@@ -109,6 +109,13 @@ def _dnnCatRetCat(model, train_params: config.ParamsConfig):
     return DNNCatRetCatFusion(input_dim=sdim+idim,
                               **train_params.Fusion['params'])
 
+def _dnnCatRetCatAll(model, train_params: config.ParamsConfig):
+    sdim, idim = model.SeqFeatureDim, model.ImgFeatureDim
+    dnn_out_dim = train_params.Fusion['params']['dnn_hidden_dims'][-1]
+    model.FusedFeatureDim = sdim + idim + dnn_out_dim
+
+    return DNNCatRetCatAllFusion(input_dim=sdim + idim,
+                                 **train_params.Fusion['params'])
 
 
 fusionSwitch = {
@@ -125,4 +132,5 @@ fusionSwitch = {
     'seq_attend_img_res_att': _seqAttendImgResAttOnly,  # 序列注意力对齐到图像，只返回对齐后的图像的残差和
     'dnn_cat': _dnnCat,                                 # 基于特征cat的MLP特征融合
     'dnn_cat_ret_cat': _dnnCatRetCat,                   # 基于特征cat的MLP特征融合，返回seq和dnn输出的cat
+    'dnn_cat_ret_cat_all': _dnnCatRetCatAll,            # 基于特征cat的MLP特征融合，返回seq，img和dnn输出的cat
 }
