@@ -11,7 +11,7 @@ def magicSeed():
 def magicList():
     return [i for i in range(magic)]
 
-def randomList(num, min_=0, max_=magic, seed=None, allow_duplicate=True):
+def randList(num, min_=0, max_=magic, seed=None, allow_duplicate=True):
     assert max_-min_ > num or allow_duplicate, '不允许重复时，范围必须大于采样数！'
 
     seed = magicSeed() if seed is None else seed

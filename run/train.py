@@ -1,8 +1,10 @@
 import sys
 import torch
 from tqdm import tqdm
+import multiprocessing as mp
 
 sys.path.append('../')
+# mp.set_start_method('spawn')
 
 import config
 from utils.version import saveConfigFile, saveRunVersionConfig
@@ -11,6 +13,7 @@ from comp.dataset import FusedDataset
 from builder import *
 from utils.stat import statParamNumber
 from utils.plot import plotLine
+from utils.profiling import FuncProfiler
 
 if config.train.Verbose:
     print('[train] Init managers...')
@@ -34,10 +37,13 @@ val_dataset = FusedDataset(val_path_manager.apiData(),
                            config.task.N,
                            config.train.DataSource)
 
+
 if config.train.Verbose:
     print('[train] building components...')
-train_task = buildTask(train_dataset, config.task, config.params, config.optimize, "Train")
-val_task = buildTask(val_dataset, config.task, config.params, config.optimize, "Validate")
+train_task = buildTask(train_dataset, config.train.TrainEpoch,
+                       config.task, config.params, config.optimize, "Train")
+val_task = buildTask(val_dataset, config.train.TrainEpoch // config.train.ValCycle * config.train.ValEpisode,
+                     config.task, config.params, config.optimize, "Validate")
 
 stat = buildStatManager(is_train=True,
                         task_config=config.task,
@@ -80,6 +86,14 @@ if config.train.Verbose:
 else:
     epoch_range = tqdm(range(config.train.TrainEpoch))
 
+
+# @FuncProfiler('backward', config.train.ValCycle)
+# def _model_step(_l, _o, _s, **kwargs):
+#     _l.backward()
+#     # _o.step()
+#     # _s.step()
+
+
 for epoch in epoch_range:
     # print("# %d epoch"%epoch)
 
@@ -107,12 +121,14 @@ for epoch in epoch_range:
     metrics /= config.optimize.TaskBatch
 
     loss_val.backward()
+    # _model_step(loss_val, None, None, task_type='Train')
     # 裁剪梯度
     if config.train.ClipGradNorm is not None:
         torch.nn.utils.clip_grad_norm_(model.parameters(), config.train.ClipGradNorm)
 
     optimizer.step()
     scheduler.step()
+    # _model_step(loss_val, optimizer, scheduler, task_type='Train')
 
     stat.recordTrain(metrics, loss_val.detach().item())
 

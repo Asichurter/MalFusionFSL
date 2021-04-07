@@ -29,7 +29,8 @@ test_dataset = FusedDataset(test_path_manager.apiData(),
 
 if config.test.Verbose:
     print('[test] building components...')
-test_task = buildTask(test_dataset, config.test.Task, config.params, config.optimize, "Test")
+test_task = buildTask(test_dataset, config.test.Epoch,
+                      config.test.Task, config.params, config.optimize, "Test")
 
 stat = buildStatManager(is_train=False,
                         path_manager=test_path_manager,

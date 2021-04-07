@@ -1,7 +1,7 @@
 import random as rd
 from torch.utils.data.sampler import Sampler
 
-from utils.magic import randPermutation, magicSeed
+from utils.magic import randPermutation, magicSeed, randList
 
 
 class EpisodeSampler(Sampler):
@@ -49,3 +49,17 @@ class EpisodeSampler(Sampler):
 
     def __len__(self):          # 由于batch size将会设定为一次性取出所有sampler中的数据，因此只能sample一次
         return 1
+
+
+class BatchSampler(Sampler):
+    def __init__(self, sampled_indexes_seq):
+
+        self.IndexesSequence = sampled_indexes_seq
+
+    def __iter__(self):
+        return iter(self.IndexesSequence)
+
+    def __len__(self):
+        return len(self.IndexesSequence)
+
+

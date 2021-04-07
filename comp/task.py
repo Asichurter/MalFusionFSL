@@ -6,8 +6,8 @@ import random as rd
 import time
 
 from comp.metric import Metric
-from utils.magic import magicSeed, randPermutation, randomList
-from comp.sampler import EpisodeSampler
+from utils.magic import magicSeed, randPermutation, randList
+from comp.sampler import EpisodeSampler, BatchSampler
 from utils.profiling import costTimeWithFuncName, ClassProfiler
 from comp.dataset import FusedDataset
 
@@ -79,9 +79,9 @@ class EpisodeTask:
 
         k, qk, n, N = self._readParams()
 
-        seed_for_each_class = randomList(num=len(label_space),      # 采样每个class内部的seed
-                                         seed=sampling_seed,
-                                         allow_duplicate=True)
+        seed_for_each_class = randList(num=len(label_space),  # 采样每个class内部的seed
+                                       seed=sampling_seed,
+                                       allow_duplicate=True)
 
         support_sampler = EpisodeSampler(k, qk, N, label_space, seed_for_each_class, mode='support')
         query_sampler = EpisodeSampler(k, qk, N, label_space, seed_for_each_class, mode='query')        # make query set labels cluster
@@ -150,7 +150,7 @@ class RegularEpisodeTask(EpisodeTask):
                  task_type='Train'):
         super(RegularEpisodeTask, self).__init__(k, qk, n, N, dataset, cuda, label_expand, parallel, task_type)
 
-    # @ClassProfiler("episode")
+    # @ClassProfiler("regular_episode")
     def episode(self, task_seed=None, sampling_seed=None):
         k, qk, n, N = self._readParams()
 
@@ -180,6 +180,93 @@ class RegularEpisodeTask(EpisodeTask):
 
         return (support_seqs, support_imgs, support_lens, support_labels), \
                (query_seqs, query_imgs, query_lens, query_labels)
+
+
+class BatchSampledTask(RegularEpisodeTask):
+    def __init__(self, k, qk, n, N, dataset, total_epoch,
+                 cuda=True, label_expand=False, parallel=None,
+                 task_type='Train',
+                 task_seq_seed=None, sampling_seq_seed=None):
+        super(BatchSampledTask, self).__init__(k, qk, n, N, dataset, cuda, label_expand, parallel, task_type)
+        self.TotalEpoch = total_epoch
+
+        # 此处默认假定支持集和查询集没有shuffle，都是按照k/qkg个一个类的顺序返回的
+        self.SupportLabels = t.LongTensor([i for i in range(n)])[:,None].repeat(1,k).view(-1,).cuda()
+        self.QueryLabels = t.LongTensor([i for i in range(n)])[:,None].repeat(1,qk).view(-1,).cuda()
+
+
+        support_batch_sampler, query_batch_sampler = self._makeBatchSampler(task_seq_seed, sampling_seq_seed)
+        # 为数据集构建DataLoader
+        self.Dataset.addBatchSampler(support_batch_sampler, query_batch_sampler)
+        # 由于query_labels不再改变，因此直接在初始化时写一次写死
+        self.Metric.updateLabels(self.QueryLabels)
+
+    def _makeBatchSampler(self, task_seq_seed=None, sampling_seq_seed=None):
+        k, qk, n, N = self._readParams()
+
+        if task_seq_seed is None:
+            task_seq_seed = magicSeed()
+        if sampling_seq_seed is None:
+            sampling_seq_seed = magicSeed()
+
+        # 采样任务序列种子
+        task_seq_seeds = randList(self.TotalEpoch, seed=task_seq_seed)
+        # 采样采样序列种子
+        sampling_seq_seeds = randList(self.TotalEpoch, seed=sampling_seq_seed)
+
+        # 利用任务序列种子采样标签空间
+        label_space_seq = []
+        for seed in task_seq_seeds:
+            label_space = self._getLabelSpace(seed)
+            label_space_seq.append(label_space)
+
+        sampled_support_indexes_seq = []
+        sampled_query_indexes_seq = []
+        for label_space, sampling_seed in zip(label_space_seq, sampling_seq_seeds):
+            # 对于一个标签空间，采样每个class内部的seed
+            class_wise_seeds = randList(num=len(label_space),
+                                        seed=sampling_seed,
+                                        allow_duplicate=True)
+            support_episode_items = []
+            query_episode_items = []
+            for class_, class_seed in zip(label_space, class_wise_seeds):
+                perm = randPermutation(N, class_seed)
+
+                # 排列前k个是支持集的类内偏移
+                support_items = [class_ * N + i for i in perm[:k]]
+                # 排列第k到qk+k个是查询集的类内偏移
+                query_items = [class_ * N + i for i in perm[k:k+qk]]
+
+                support_episode_items.extend(support_items)
+                query_episode_items.extend(query_items)
+
+            sampled_support_indexes_seq.append(support_episode_items)
+            sampled_query_indexes_seq.append(query_episode_items)
+
+        support_batch_sampler = BatchSampler(sampled_support_indexes_seq)
+        query_batch_sampler = BatchSampler(sampled_query_indexes_seq)
+
+        return support_batch_sampler, query_batch_sampler
+
+    # @ClassProfiler('batch_sample_episode')
+    def episode(self, task_seed=None, sampling_seed=None):
+        k, qk, n, N = self._readParams()
+
+        support_seqs, support_imgs, support_lens, support_labels = self.Dataset.sampleByBatch('support')
+        query_seqs, query_imgs, query_lens, query_labels = self.Dataset.sampleByBatch('query')
+
+        # 重整数据结构，便于模型读取任务参数
+        if support_seqs is not None:
+            support_seqs = support_seqs.view(n, k, -1)
+            query_seqs = query_seqs.view(n * qk, -1)
+        if support_imgs is not None:
+            img_width, img_height = support_imgs.size()[-2:]
+            support_imgs = support_imgs.view(n, k, 1, img_width, img_height)
+            query_imgs = query_imgs.view(n*qk, 1, img_width, img_height)    # 注意，此处的qk指每个类中的查询样本个数，并非查询集长度
+
+        return (support_seqs, support_imgs, support_lens, self.SupportLabels), \
+               (query_seqs, query_imgs, query_lens, self.QueryLabels)
+
 
 ########################################################
 # dataloader从dataset中收集数据的收集方法

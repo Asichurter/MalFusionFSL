@@ -2,7 +2,8 @@ import config
 
 from comp.task import *
 
-def buildTask(dataset,
+
+def buildTask(dataset, total_task_epoch,
               task_params: config.TaskConfig = None,
               model_params: config.ParamsConfig = None,
               optimize_params: config.OptimizeConfig = None,
@@ -16,12 +17,19 @@ def buildTask(dataset,
         task_params = config.task
 
     # TODO: 根据model_name来返回对应的task
-    return _regular_task(dataset, task_params,
-                         model_params, optimize_params,
+    return _regular_task(dataset, total_task_epoch,
+                         task_params,
+                         model_params,
+                         optimize_params,
                          task_type)
+    # return _batch_sampled_task(dataset, total_task_epoch,
+    #                            task_params,
+    #                            model_params,
+    #                            optimize_params,
+    #                            task_type)
 
 
-def _regular_task(dataset,
+def _regular_task(dataset, total_task_epoch,
                   task_params: config.TaskConfig,
                   model_params: config.ParamsConfig,
                   optimize_params: config.OptimizeConfig,
@@ -34,3 +42,17 @@ def _regular_task(dataset,
                               dataset=dataset, cuda=True,
                               label_expand=expand, parallel=None,
                               task_type=task_type)
+
+
+def _batch_sampled_task(dataset, total_task_epoch,
+                        task_params: config.TaskConfig,
+                        model_params: config.ParamsConfig,
+                        optimize_params: config.OptimizeConfig,
+                        task_type):
+    expand = (optimize_params.LossFunc != 'nll')
+    return BatchSampledTask(k=task_params.Episode.k, qk=task_params.Episode.qk,
+                            n=task_params.Episode.n, N=task_params.N,
+                            dataset=dataset, cuda=True,
+                            total_epoch=total_task_epoch,
+                            label_expand=expand, parallel=None,
+                            task_type=task_type)
