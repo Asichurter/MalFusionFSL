@@ -82,7 +82,7 @@ class FuncProfiler:
             self.Total[task_type] += (end - start)
 
             iters = self.Iter[task_type]
-            report_iter = self.ReportIter[task_type]
+            report_iter = self.ReportIter
 
             if iters % report_iter == 0:
                 print(f"- {task_type}.{self.Name}: " + "%.5f" % self.Total[task_type])
