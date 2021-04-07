@@ -47,13 +47,17 @@ class ExecuteMachine:
         self.ExecuteTaskLines.append(task_type)
         self.ConfigUpdateLines.append(update_config_fields)
 
-    def addRedoTrainTask(self, dataset, version):
+    def addRedoTrainTask(self, dataset, version, updated_configs=None):
         pm = PathManager(dataset=dataset,
                          version=version)
         # 直接读取已做过的实验的config，重新做一次
         pre_config = loadJson(joinPath(pm.doc(), 'train.json'))
-        self.ExecuteTaskLines.append('train')
-        self.ConfigUpdateLines.append(pre_config)
+
+        # 加载之前version的参数后，如果有需要更新的参数，则在之前参数的基础上进行更新
+        if updated_configs is not None:
+            self._setFields(pre_config, updated_configs)
+
+        self.addTask('train', pre_config)
 
     def _setConfig(self, task_type, fields):
         '''
@@ -95,6 +99,15 @@ class ExecuteMachine:
         return conf
 
     def execute(self):
+        train_num, test_num = 0, 0
+        for task in self.ExecuteTaskLines:
+            if task == 'train':
+                train_num += 1
+            elif task == 'test':
+                test_num += 1
+
+        print(f'[ExecuteMachine] Summary | Train task: {train_num} | Test task: {test_num}\n\n')
+
         execute_flags = ' '.join([f' -{flag_key} {flag_val}' for flag_key, flag_val in self.Flags.items()])
         for i, (task_type, task_config) in enumerate(zip(self.ExecuteTaskLines, self.ConfigUpdateLines)):
             print(f'\n\n{i}-th {task_type} task\nconfig:')
