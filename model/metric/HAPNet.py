@@ -3,7 +3,7 @@ import torch.nn as nn
 import warnings
 
 import config
-from model.common.base_embed_model import BaseProtoModel
+from model.common.base_embed_model import BaseEmbedModel
 from comp.nn.other.CNN import CNNBlock2D
 from utils.manager import PathManager
 
@@ -53,7 +53,7 @@ class FeatureAttention(nn.Module):
         return self.Layers(x)
 
 
-class HAPNet(BaseProtoModel):
+class HAPNet(BaseEmbedModel):
     def __init__(self,
                  model_params: config.ParamsConfig,
                  path_manager: PathManager,

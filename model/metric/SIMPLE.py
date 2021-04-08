@@ -2,12 +2,12 @@ import torch as t
 import torch.nn as nn
 import numpy as np
 
-from model.common.base_embed_model import BaseProtoModel
+from model.common.base_embed_model import BaseEmbedModel
 import config
 from utils.manager import PathManager
 
 
-class SIMPLE(BaseProtoModel):
+class SIMPLE(BaseEmbedModel):
 
     def __init__(self,
                  model_params: config.ParamsConfig,

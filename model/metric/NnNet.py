@@ -1,13 +1,13 @@
 import torch.nn.functional as F
 import torch
 
-from model.common.base_embed_model import BaseProtoModel
+from model.common.base_embed_model import BaseEmbedModel
 import config
 from utils.manager import PathManager
 from utils.profiling import ClassProfiler
 
 
-class NnNet(BaseProtoModel):
+class NnNet(BaseEmbedModel):
     def __init__(self,
                  model_params: config.ParamsConfig,
                  path_manager: PathManager,
