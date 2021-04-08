@@ -4,7 +4,7 @@ import numpy as np
 
 from comp.nn.sequential.LSTM import BiLstmEncoder
 from comp.nn.image.CNN import StackConv2D
-from comp.nn.image.resnet import ResNet18
+from comp.nn.image.resnet import getResNet
 from comp.nn.reduction.CNN import CNNEncoder1D
 from comp.nn.reduction.selfatt import BiliAttnReduction
 from comp.nn.embedder.lstm_based import BaseLSTMEmbedder
@@ -15,15 +15,16 @@ from builder.fusion_builder import buildFusion
 from model.common.base_model import BaseModel
 
 
-class BaseProtoModel(BaseModel):
+class BaseEmbedModel(BaseModel):
 
     def __init__(self,
                  model_params: config.ParamsConfig,
                  path_manager: PathManager,
                  loss_func,
                  data_source,
+                 need_fusion=True,
                  **kwargs):
-        super(BaseProtoModel, self).__init__(model_params, path_manager, loss_func, data_source, **kwargs)
+        super(BaseEmbedModel, self).__init__(model_params, path_manager, loss_func, data_source, **kwargs)
 
         # ------------------------------------------------------------------------------------------
         # word embedding
@@ -69,14 +70,13 @@ class BaseProtoModel(BaseModel):
 
                 # 即使不使用全局池化，使用patch进行后续处理时，特征维度还是channel数量
                 # 只是在特征前会多一层patch的维度
-                # output shape is the same as last channel number
                 self.ImgFeatureDim = self.ImageEmbedding.OutputSize
 
-            elif model_params.ConvBackbone['type'] == 'resnet18':
-                resnet18_pararms = model_params.ConvBackbone['params'].get('resnet18', {})
-                self.ImageEmbedding = ResNet18(**resnet18_pararms)
+            elif model_params.ConvBackbone['type'] == 'resnet':
+                resnet_pararms = model_params.ConvBackbone['params'].get('resnet', {})
+                self.ImageEmbedding = getResNet(resnet_pararms['arch'])(**resnet_pararms)
                 self.ImgEmbedPipeline.append(lambda x: self.ImageEmbedding(x))
-                self.ImgFeatureDim = 1000   # default output shape of ResNet18 is 1000
+                self.ImgFeatureDim = self.ImageEmbedding.OutputDim   # default output shape of ResNet18 is 1000
 
             else:
                 raise NotImplementedError(f'Not implemented image embedding module: {model_params.ConvBackbone["type"]}')
@@ -94,7 +94,10 @@ class BaseProtoModel(BaseModel):
         # ------------------------------------------------------------------------------------------
 
         # 需要在模型初始化之后才能调用fusion的初始化，因为需要检查dimension
-        self.Fusion = buildFusion(self, model_params)
+        if need_fusion:
+            self.Fusion = buildFusion(self, model_params)
+        else:
+            self.Fusion = None
 
     def forward(self,                       # forward接受所有可能用到的参数
                 support_seqs, support_imgs, support_lens, support_labels,
