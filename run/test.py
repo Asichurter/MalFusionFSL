@@ -20,6 +20,8 @@ test_path_manager = PathManager(dataset=config.test.Task.Dataset,
                                 model_name=config.test.ModelName)
 # 重新加载训练时的params和optimize参数
 config.reloadAllTestConfig(test_path_manager.doc() + 'train.json')
+# 由于初始化manager时尚未知道model_name，需要在此处重新设置一次加载到的model_name
+test_path_manager.setModelName(config.test.ModelName)
 
 test_dataset = FusedDataset(test_path_manager.apiData(),
                             test_path_manager.imgData(),

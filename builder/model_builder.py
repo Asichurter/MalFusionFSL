@@ -83,12 +83,11 @@ def _SIMPLE(path_manager: PathManager,
 
 
 def _PostProtoNet(path_manager: PathManager,
-            model_params: config.ParamsConfig,
-            task_params: config.TaskConfig,
-            loss_func,
-            data_source):
+                  model_params: config.ParamsConfig,
+                  task_params: config.TaskConfig,
+                  loss_func,
+                  data_source):
     return PostProtoNet(model_params, path_manager, loss_func, data_source).cuda()
-
 
 
 ModelSwitch = {

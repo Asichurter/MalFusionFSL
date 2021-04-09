@@ -24,6 +24,9 @@ class PathManager:
         self.Version = version
         self.ModelName = model_name
 
+    def setModelName(self, model_name):
+        self.ModelName = model_name
+
     # 所有数据集的根目录
     def rootBase(self):
         return joinPath(self.Base, is_dir=True)

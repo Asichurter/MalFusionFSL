@@ -53,13 +53,22 @@ def reloadAllTestConfig(cfg_path):
 
     # 加载训练时数据源作为测试时数据源
     _recoverTrainDataSource(new_run_cfg)
+    # 加载训练时模型名称作为测试时模型名称
+    _recoverTrainModelName(new_run_cfg)
 
     _setCudaDevice(test.Task)
 
 
 def _recoverTrainDataSource(train_run_config):
+    # 没有指定数据源时默认读取训练时数据源作为测试数据源
     if test.DataSource is None:
         test.DataSource = train_run_config['training']['data_source']
+
+
+def _recoverTrainModelName(train_run_config):
+    # 没有指定模型名称时，默认加载训练时模型名称作为测试模型
+    if test.ModelName is None:
+        test.ModelName = train_run_config['model']['model_name']
 
 
 def reloadArbitraryConfig(new_cfg, reload_config_list):

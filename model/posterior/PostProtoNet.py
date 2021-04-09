@@ -5,7 +5,7 @@ from utils.training import repeatProtoToCompShape, \
                             repeatQueryToCompShape, \
                             protoDisAdapter
 
-from model.common.base_potserior import BasePosteriorEmbedModel
+from model.common.base_potserior_model import BasePosteriorEmbedModel
 import config
 from utils.manager import PathManager
 from utils.profiling import ClassProfiler

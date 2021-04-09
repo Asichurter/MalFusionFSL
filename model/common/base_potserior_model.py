@@ -30,6 +30,13 @@ class BasePosteriorEmbedModel(BaseEmbedModel):
         raise NotImplementedError("[BasePosteriorEmbedModel] 'test' method must be implemented by child model")
 
     def _posterior_decide_with_softmax_logits(self, *logits):
+        '''
+        使用多个feature分别forward之后生成的softmax logits进行联合决策。
+
+        基本方法是：所有样本先在每个feature内选出一个概率值最高的结果，
+        然后各个feature之间最高的概率值再进行比较来决出最高的概率值，
+        并且以该最高概率值对应的标签作为联合决策结果返回
+        '''
         m_logit_list = []
         m_label_list = []
         for logit in logits:
