@@ -6,8 +6,8 @@ makeResultByTrainConfigCond(dataset='virushare-20',
                             train_config_cond={
                                 'model': {
                                     'model_name': 'SIMPLE',
-                                    # 'fusion': {
-                                    #     'type': 'cat'
-                                    # }
+                                    'fusion': {
+                                        'type': 'cat'
+                                    }
                                 }
                             })

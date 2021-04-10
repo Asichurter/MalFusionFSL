@@ -4,19 +4,20 @@
         "k": 5,
         "n": 5,
         "qk": 5,
-        "version": 86,
+        "version": 111,
         "device_id": 0
     },
-    "model_name": "ProtoNet",
+    "model_name": null,
     "testing_epoch": 5000,
     "report_iter": 100,
     "data_source": null,
-    "load_type": "best",
+    "load_type": "last",
     "test_subset": "test",
     "metrics": [
         "acc"
     ],
     "verbose": true,
     "fine_tuning": {},
-    "description": []
+    "description": [
+    ]
 }

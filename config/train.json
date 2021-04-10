@@ -4,12 +4,12 @@
         "k": 5,
         "n": 5,
         "qk": 5,
-        "version": 86,
+        "version": 111,
         "device_id": 0,
         "preload_state_dict_versions": []
     },
     "training": {
-        "epoch": 60000,
+        "epoch": 20000,
         "data_source": [
             "sequence",
             "image"
@@ -23,11 +23,11 @@
         "使用sgd优化",
         "使用1层BiLSTM编码,使用1dCNN解码",
         "使用经过了stride的conv-n，使用global_pooling",
-        "使用image和sequence的dnn_cat_ret_cat_all，三层，维度增大至512，最终输出为128",
+        "使用image和sequence的cat",
         "初始学习率为1e-3"
     ],
     "model": {
-        "model_name": "ProtoNet",
+        "model_name": "MLossSIMPLE",
         "reproject": {
             "enabled": false,
             "params": {
@@ -36,7 +36,7 @@
             }
         },
         "fusion": {
-            "type": "dnn_cat_ret_cat_all",
+            "type": "cat",
             "params": {
                 "bili_norm_type": "bn",
                 "bili_affine": true,
@@ -73,6 +73,7 @@
             "params": {
                 "conv-n": {
                     "global_pooling": true,
+                    "global_pooling_type": "max",
                     "input_size": 224,
                     "out_type": "patch",
                     "channels": [
@@ -153,7 +154,9 @@
             "dropout": 0.2
         },
         "more": {
-            "temperature": 1
+            "temperature": 1,
+            "distance_type": "euc",
+            "aux_loss_factor": 0.2
         },
         "cluster": {
             "cluster_num_step": 1,
@@ -188,13 +191,14 @@
     "optimize": {
         "loss_function": "nll",
         "optimizer": "sgd",
+        "momentum": 0.9,
         "default_lr": 0.001,
         "custom_lrs": {},
         "weight_decay": 0.0005,
         "task_batch": 1,
         "scheduler": {
             "type": "step",
-            "lr_decay_iters": 30000,
+            "lr_decay_iters": 15000,
             "lr_decay_gamma": 0.1
         }
     },

@@ -46,11 +46,11 @@ def _checkRecursiveCond(cur_cfg, cur_cond):
     for k,v in cur_cond.items():
         # 条件中的key不存在于config中，直接返回false
         if k not in cur_cfg:
-            # print(f"key '{k}' not in config: {cur_cfg}")
+            print(f"key '{k}' not in config: {cur_cfg}")
             return False
         # value的类型不同，直接返回false
         if type(cur_cfg[k]) != type(v):
-            # print(f"value type '{type(v)}' not equal to config value type: {type(cur_cfg[k])}")
+            print(f"value type '{type(v)}' not equal to config value type: {type(cur_cfg[k])}")
             return False
         # 如果value是dict类型，需要递归
         if type(v) == dict:

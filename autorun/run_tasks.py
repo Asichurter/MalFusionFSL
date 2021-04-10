@@ -2,223 +2,98 @@ from autorun.machine import ExecuteMachine
 
 machine = ExecuteMachine(exe_bin='/opt/anaconda3/bin/python')
 
-# machine.addRedoTrainTask(dataset='virushare-20',
-#                          version=72,
-#                          updated_configs={
-#                              'task': {
-#                                  'version': 87
-#                              },
-#                              'model': {
-#                                  'model_name': 'SIMPLE'
-#                              }
-#                          })
+machine.addTask('train',
+                {
+                    'task': {
+                        'version': 102
+                    }
+                })
 machine.addTask('test',
                 {
                     "task": {
-                        "version": 87
+                        "version": 102
                     },
-                    'model_name': 'SIMPLE',
                     'load_type': 'best'
                 })
 machine.addTask('test',
                 {
                     "task": {
-                        "version": 87
+                        "version": 102
                     },
-                    'model_name': 'SIMPLE',
                     'load_type': 'last'
                 })
 
-# machine.addRedoTrainTask(dataset='virushare-20',
-#                          version=73,
-#                          updated_configs={
-#                              'task': {
-#                                  'version': 88
-#                              },
-#                              'model': {
-#                                  'model_name': 'SIMPLE'
-#                              }
-#                          })
+machine.addTask('train',
+                {
+                    'task': {
+                        'version': 103
+                    },
+                    'desc': [
+                        "序列长度为300",
+                        "使用sgd优化",
+                        "使用1层BiLSTM编码,使用1dCNN解码",
+                        "使用经过了stride的conv-n，使用global_pooling",
+                        "使用image和sequence的dnn_cat_ret_cat，四层，减小了维度，在87基础上增加了一层256",
+                        "初始学习率为1e-3"
+                    ],
+                    'model': {
+                        'fusion': {
+                            'dnn_hidden_dims': [256, 256, 128, 64],
+                            'dnn_activations': ['relu', 'relu', 'relu', 'none'],
+                            'dnn_dropouts': [0.3, 0.3, 0.3, 0.3]
+                        }
+                    }
+                })
 machine.addTask('test',
                 {
                     "task": {
-                        "version": 88
+                        "version": 103
                     },
-                    'model_name': 'SIMPLE',
                     'load_type': 'best'
                 })
 machine.addTask('test',
                 {
                     "task": {
-                        "version": 88
+                        "version": 103
                     },
-                    'model_name': 'SIMPLE',
                     'load_type': 'last'
                 })
 
-# machine.addRedoTrainTask(dataset='virushare-20',
-#                          version=74,
-#                          updated_configs={
-#                              'task': {
-#                                  'version': 89
-#                              },
-#                              'model': {
-#                                  'model_name': 'SIMPLE'
-#                              }
-#                          })
+machine.addTask('train',
+                {
+                    'task': {
+                        'version': 104
+                    },
+                    'desc': [
+                        "序列长度为300",
+                        "使用sgd优化",
+                        "使用1层BiLSTM编码,使用1dCNN解码",
+                        "使用经过了stride的conv-n，使用global_pooling",
+                        "使用image和sequence的dnn_cat_ret_cat，五层，减小了维度，在87基础上增加了1层256和128",
+                        "初始学习率为1e-3"
+                    ],
+                    'model': {
+                        'fusion': {
+                            'dnn_hidden_dims': [256, 256, 128, 128, 64],
+                            'dnn_activations': ['relu', 'relu', 'relu', 'relu', 'none'],
+                            'dnn_dropouts': [0.3, 0.3, 0.3, 0.3, 0.3]
+                        }
+                    }
+                })
 machine.addTask('test',
                 {
                     "task": {
-                        "version": 89
+                        "version": 104
                     },
-                    'model_name': 'SIMPLE',
                     'load_type': 'best'
                 })
 machine.addTask('test',
                 {
                     "task": {
-                        "version": 89
+                        "version": 104
                     },
-                    'model_name': 'SIMPLE',
                     'load_type': 'last'
                 })
-
-# machine.addRedoTrainTask(dataset='virushare-20',
-#                          version=77,
-#                          updated_configs={
-#                              'task': {
-#                                  'version': 90
-#                              },
-#                              'model': {
-#                                  'model_name': 'SIMPLE'
-#                              }
-#                          })
-machine.addTask('test',
-                {
-                    "task": {
-                        "version": 90
-                    },
-                    'model_name': 'SIMPLE',
-                    'load_type': 'best'
-                })
-machine.addTask('test',
-                {
-                    "task": {
-                        "version": 90
-                    },
-                    'model_name': 'SIMPLE',
-                    'load_type': 'last'
-                })
-
-# machine.addRedoTrainTask(dataset='virushare-20',
-#                          version=78,
-#                          updated_configs={
-#                              'task': {
-#                                  'version': 91
-#                              },
-#                              'model': {
-#                                  'model_name': 'SIMPLE'
-#                              }
-#                          })
-machine.addTask('test',
-                {
-                    "task": {
-                        "version": 91
-                    },
-                    'model_name': 'SIMPLE',
-                    'load_type': 'best'
-                })
-machine.addTask('test',
-                {
-                    "task": {
-                        "version": 91
-                    },
-                    'model_name': 'SIMPLE',
-                    'load_type': 'last'
-                })
-
-# machine.addRedoTrainTask(dataset='virushare-20',
-#                          version=79,
-#                          updated_configs={
-#                              'task': {
-#                                  'version': 92
-#                              },
-#                              'model': {
-#                                  'model_name': 'SIMPLE'
-#                              }
-#                          })
-machine.addTask('test',
-                {
-                    "task": {
-                        "version": 92
-                    },
-                    'model_name': 'SIMPLE',
-                    'load_type': 'best'
-                })
-machine.addTask('test',
-                {
-                    "task": {
-                        "version": 92
-                    },
-                    'model_name': 'SIMPLE',
-                    'load_type': 'last'
-                })
-
-# machine.addRedoTrainTask(dataset='virushare-20',
-#                          version=80,
-#                          updated_configs={
-#                              'task': {
-#                                  'version': 93
-#                              },
-#                              'model': {
-#                                  'model_name': 'SIMPLE'
-#                              }
-#                          })
-machine.addTask('test',
-                {
-                    "task": {
-                        "version": 93
-                    },
-                    'model_name': 'SIMPLE',
-                    'load_type': 'best'
-                })
-machine.addTask('test',
-                {
-                    "task": {
-                        "version": 93
-                    },
-                    'model_name': 'SIMPLE',
-                    'load_type': 'last'
-                })
-
-# machine.addRedoTrainTask(dataset='virushare-20',
-#                          version=81,
-#                          updated_configs={
-#                              'task': {
-#                                  'version': 94
-#                              },
-#                              'model': {
-#                                  'model_name': 'SIMPLE'
-#                              }
-#                          })
-machine.addTask('test',
-                {
-                    "task": {
-                        "version": 94
-                    },
-                    'model_name': 'SIMPLE',
-                    'load_type': 'best'
-                })
-machine.addTask('test',
-                {
-                    "task": {
-                        "version": 94
-                    },
-                    'model_name': 'SIMPLE',
-                    'load_type': 'last'
-                })
-
-
 
 # machine.addTask('train',
 #                 {
