@@ -16,6 +16,7 @@ class NnNet(BaseEmbedModel):
         super().__init__(model_params, path_manager, loss_func, data_source)
 
         self.DistTemp = model_params.More['temperature']
+        self.DistType = model_params.More.get('distance_type', 'euc')
 
     # @ClassProfiler("NnNet.forward")
     def forward(self,                       # forward接受所有可能用到的参数
@@ -42,14 +43,19 @@ class NnNet(BaseEmbedModel):
         # shape: [n, dim]
         # original_protos = support_fused_features.view(n, k, dim).mean(dim=1)
 
-        rep_support = support_fused_features.repeat((qk, 1, 1)).view(qk, n*k, -1)
+        rep_support = support_fused_features.repeat((qk, 1, 1)).view(qk, n, k, -1)
         rep_query = query_fused_features.repeat(n*k, 1, 1).transpose(0, 1)\
-                                        .contiguous().view(qk, n*k, -1)
+                                        .contiguous().view(qk, n, k, -1)
 
         # directly compare with support samples, instead of prototypes
         # shape: [qk, n*k, dim]->[qk, n, k, dim] -> [qk, n]
-        similarity = ((rep_support - rep_query) ** 2).neg()\
-                                        .view(qk, n, k, -1).sum(-1)
+        if self.DistType == 'euc':
+            similarity = ((rep_support - rep_query) ** 2).neg().sum(-1)
+        elif self.DistType == 'cos':
+            similarity = torch.cosine_similarity(rep_support, rep_query, dim=2)
+        else:
+            raise ValueError(f'[NnNet] Unrecognized distance type: {self.DistType}')
+
         similarity = torch.max(similarity, dim=2).values
 
         if return_embeddings:

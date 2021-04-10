@@ -20,12 +20,13 @@ class ProtoNet(BaseEmbedModel):
         super().__init__(model_params, path_manager, loss_func, data_source)
 
         self.DistTemp = model_params.More['temperature']
+        self.DistType = model_params.More.get('distance_type', 'euc')
 
     # @ClassProfiler("ProtoNet.forward")
     def forward(self,                       # forward接受所有可能用到的参数
                 support_seqs, support_imgs, support_lens, support_labels,
                 query_seqs, query_imgs, query_lens, query_labels,
-                epoch=None, metric='euc', return_embeddings=False):
+                epoch=None, return_embeddings=False):
 
         embedded_support_seqs, embedded_query_seqs, \
         embedded_support_imgs, embedded_query_imgs = self.embed(support_seqs, query_seqs,
@@ -51,7 +52,7 @@ class ProtoNet(BaseEmbedModel):
         rep_query = repeatQueryToCompShape(query_fused_features, qk, n)
 
         similarity = protoDisAdapter(protos, rep_query, qk, n, dim,
-                                     dis_type=metric,
+                                     dis_type=self.DistType,
                                      temperature=self.DistTemp)
 
         if return_embeddings:

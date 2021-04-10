@@ -25,6 +25,7 @@ class PostProtoNet(BasePosteriorEmbedModel):
         super().__init__(model_params, path_manager, loss_func, data_source)
 
         self.DistTemp = model_params.More['temperature']
+        self.DistType = model_params.More.get('distance_type', 'euc')
 
     # @ClassProfiler("ProtoNet.forward")
     def forward(self,                       # forward接受所有可能用到的参数
@@ -42,6 +43,7 @@ class PostProtoNet(BasePosteriorEmbedModel):
 
         k, n, qk = self.TaskParams.k, self.TaskParams.n, self.TaskParams.qk
 
+        # 各个特征各自forward，以产生各自的logits和loss
         seq_feature_forward_result = self._feature_forward(embedded_support_seqs, embedded_query_seqs, query_labels,
                                                            feature_name='sequence')
         img_feature_forward_result = self._feature_forward(embedded_query_seqs, embedded_query_imgs, query_labels,
@@ -65,7 +67,7 @@ class PostProtoNet(BasePosteriorEmbedModel):
             return self.forward(*args, **kwargs)
 
     def _feature_forward(self, support_features, query_features, query_labels,
-                         feature_name, metric='euc', **kwargs):
+                         feature_name, **kwargs):
         assert support_features is not None, f"[PostProtoNet] {feature_name} is None, " \
                                              f"which is not allowed in posterior fusion models"
 
@@ -80,7 +82,7 @@ class PostProtoNet(BasePosteriorEmbedModel):
         rep_query = repeatQueryToCompShape(query_features, qk, n)
 
         similarity = protoDisAdapter(protos, rep_query, qk, n, dim,
-                                     dis_type=metric,
+                                     dis_type=self.DistType,
                                      temperature=self.DistTemp)
 
         logits = F.log_softmax(similarity, dim=1)
