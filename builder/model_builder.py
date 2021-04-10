@@ -90,6 +90,22 @@ def _PostProtoNet(path_manager: PathManager,
     return PostProtoNet(model_params, path_manager, loss_func, data_source).cuda()
 
 
+def _MLossProtoNet(path_manager: PathManager,
+                   model_params: config.ParamsConfig,
+                   task_params: config.TaskConfig,
+                   loss_func,
+                   data_source):
+    return MLossProtoNet(model_params, path_manager, loss_func, data_source).cuda()
+
+
+def _MLossSIMPLE(path_manager: PathManager,
+                 model_params: config.ParamsConfig,
+                 task_params: config.TaskConfig,
+                 loss_func,
+                 data_source):
+    return MLossSIMPLE(model_params, path_manager, loss_func, data_source).cuda()
+
+
 ModelSwitch = {
     'ProtoNet': _ProtoNet,
     'NnNet': _NnNet,
@@ -97,4 +113,7 @@ ModelSwitch = {
     'SIMPLE': _SIMPLE,
 
     'PostProtoNet': _PostProtoNet,
+
+    'MLossProtoNet': _MLossProtoNet,
+    "MLossSIMPLE": _MLossSIMPLE,
 }
