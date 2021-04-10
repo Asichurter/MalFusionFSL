@@ -59,6 +59,7 @@ class OptimizeConfig:
         self.DefaultLr = cfg['optimize']['default_lr']
         self.CustomLrs = cfg['optimize']['custom_lrs']
         self.WeightDecay = cfg['optimize']['weight_decay']
+        self.Momentum = cfg['optimize'].get('momentum', 0.9)    # 向下适配
         self.TaskBatch = cfg['optimize']['task_batch']
         self.Scheduler = cfg['optimize']['scheduler']       # 包含衰减周期和衰减倍率两个参数
 

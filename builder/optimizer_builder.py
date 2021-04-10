@@ -39,7 +39,7 @@ def buildOptimizer(named_parameters, optimize_params=None):
 
 def _sgd(params, sgd_params: config.OptimizeConfig):
     sgd = torch.optim.SGD(params,
-                          momentum=0.9,
+                          momentum=sgd_params.Momentum,
                           weight_decay=sgd_params.WeightDecay)
     return sgd
 

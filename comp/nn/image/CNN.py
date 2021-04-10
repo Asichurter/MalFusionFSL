@@ -14,7 +14,9 @@ class ImgPatchConverter(nn.Module):
 
 class StackConv2D(nn.Module):
     def __init__(self, channels, kernel_sizes, padding_sizes, strides, nonlinears,
-                 global_pooling=True, out_type='flatten', input_size=None, **kwargs):
+                 global_pooling=True, out_type='flatten', input_size=None,
+                 global_pooling_type='max',
+                 **kwargs):
         super(StackConv2D, self).__init__()
         layers = [CNN2DBlock(channels[i], channels[i + 1],
                              stride=strides[i],
@@ -24,7 +26,12 @@ class StackConv2D(nn.Module):
                   for i in range(len(channels) - 1)]
 
         if global_pooling:
-            layers.append(nn.AdaptiveMaxPool2d((1,1)))
+            if global_pooling_type == 'max':
+                layers.append(nn.AdaptiveMaxPool2d((1,1)))
+            elif global_pooling_type == 'avg':
+                layers.append(nn.AdaptiveAvgPool2d((1,1)))
+            else:
+                raise ValueError(f"[StackConv2D] Unrecognized global pooling type: {global_pooling_type}")
             self.OutputSize = channels[-1]
 
         # 将通道，图像宽高展开
