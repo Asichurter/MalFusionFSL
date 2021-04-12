@@ -27,8 +27,16 @@ class MLossProtoNet(BaseEmbedModel):
 
         self.DistTemp = model_params.More['temperature']
         self.DistType = model_params.More.get('distance_type', 'euc')
-        self.AuxLossFactor = model_params.More.get('aux_loss_factor', 0.2)      # 辅助损失的调整系数
 
+        self.AuxLossSeqFactor = model_params.More.get('aux_loss_seq_factor', None)
+        self.AuxLossImgFactor = model_params.More.get('aux_loss_img_factor', None)
+
+        # 向下适配：如果没有分别指定seq和img的系数，则读取一个公共的系数来同时指定两个系数
+        if self.AuxLossSeqFactor is None:
+            self.AuxLossSeqFactor = model_params.More.get('aux_loss_factor', 0.3)
+        if self.AuxLossImgFactor is None:
+            self.AuxLossImgFactor = model_params.More.get('aux_loss_factor', 0.3)
+            
     # @ClassProfiler("ProtoNet.forward")
     def forward(self,                       # forward接受所有可能用到的参数
                 support_seqs, support_imgs, support_lens, support_labels,
@@ -51,8 +59,9 @@ class MLossProtoNet(BaseEmbedModel):
                                                                feature_name='image')
 
             # 平均各个特征产生的损失
-            # 使用了一个系数来控制
-            feature_loss = (seq_feature_forward_result.get('loss') + img_feature_forward_result.get('loss')) * self.AuxLossFactor
+            # seq和img分别使用各自的系数来缩放
+            feature_loss = seq_feature_forward_result.get('loss') * self.AuxLossSeqFactor + \
+                           img_feature_forward_result.get('loss') * self.AuxLossImgFactor
 
         support_fused_features = self._fuse(embedded_support_seqs, embedded_support_imgs, fuse_dim=1)
         query_fused_features = self._fuse(embedded_query_seqs, embedded_query_imgs, fuse_dim=1)
