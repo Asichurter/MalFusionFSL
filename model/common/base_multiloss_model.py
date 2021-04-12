@@ -1,4 +1,5 @@
 import torch
+from torch import nn
 
 import config
 from model.common.base_embed_model import BaseEmbedModel
@@ -22,6 +23,11 @@ class BaseMultiLossModel(BaseEmbedModel):
             self.AuxLossSeqFactor = model_params.More.get('aux_loss_factor', 0.2)
         if self.AuxLossImgFactor is None:
             self.AuxLossImgFactor = model_params.More.get('aux_loss_factor', 0.2)
+
+        # 辅助损失系数是否为可学习的参数
+        if model_params.More.get('aux_loss_learnable', False):
+            self.AuxLossSeqFactor = nn.Parameter(torch.FloatTensor([self.AuxLossSeqFactor]))
+            self.AuxLossImgFactor = nn.Parameter(torch.FloatTensor([self.AuxLossImgFactor]))
 
         assert predict_type in ['logits', 'labels'], f"[BaseMultiLossModel] Unsupported predict type: {predict_type}"
         self.PredictType = predict_type

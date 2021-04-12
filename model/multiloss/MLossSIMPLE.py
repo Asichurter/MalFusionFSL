@@ -19,16 +19,6 @@ class MLossSIMPLE(BaseMultiLossModel):
 
         sigma = model_params.Cluster['SIMPLE_init_sigma']
 
-        # # self.AuxLossFactor = model_params.More['aux_loss_factor']
-        # self.AuxLossSeqFactor = model_params.More.get('aux_loss_seq_factor', None)
-        # self.AuxLossImgFactor = model_params.More.get('aux_loss_img_factor', None)
-        #
-        # # 向下适配：如果没有分别指定seq和img的系数，则读取一个公共的系数来同时指定两个系数
-        # if self.AuxLossSeqFactor is None:
-        #     self.AuxLossSeqFactor = model_params.More.get('aux_loss_factor', 0.3)
-        # if self.AuxLossImgFactor is None:
-        #     self.AuxLossImgFactor = model_params.More.get('aux_loss_factor', 0.3)
-
         self.Sigma = nn.Parameter(t.FloatTensor([sigma]))
         self.ALPHA = 0.1
         self.NumClusterSteps = model_params.Cluster['cluster_num_step']
