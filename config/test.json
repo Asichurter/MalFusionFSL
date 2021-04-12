@@ -4,11 +4,11 @@
         "k": 5,
         "n": 5,
         "qk": 5,
-        "version": 111,
+        "version": 122,
         "device_id": 0
     },
     "model_name": null,
-    "testing_epoch": 5000,
+    "testing_epoch": 10000,
     "report_iter": 100,
     "data_source": null,
     "load_type": "last",
@@ -19,5 +19,6 @@
     "verbose": true,
     "fine_tuning": {},
     "description": [
+        "使用last，10000轮"
     ]
 }

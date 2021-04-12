@@ -2,98 +2,181 @@ from autorun.machine import ExecuteMachine
 
 machine = ExecuteMachine(exe_bin='/opt/anaconda3/bin/python')
 
-machine.addTask('train',
-                {
-                    'task': {
-                        'version': 102
-                    }
-                })
+# machine.addTask('train',
+#                 {
+#                     'task': {
+#                         'version': 214
+#                     },
+#                     "description": [
+#                         "序列长度为300",
+#                         "使用sgd优化",
+#                         "使用1层BiLSTM编码,使用1dCNN解码",
+#                         "使用经过了stride的conv-n，使用global_pooling",
+#                         "使用image和sequence的dnn_cat_ret,3层，使用与94相同的维度，最后使用relu激活",
+#                         "初始学习率为1e-3",
+#                         "辅助损失系数aux_loss_factor为0.5"
+#                     ],
+#                     'model': {
+#                         'more': {
+#                             'axu_loss_factor': 0.5
+#                         }
+#                     }
+#                 })
 machine.addTask('test',
                 {
                     "task": {
-                        "version": 102
+                        "version": 214
                     },
                     'load_type': 'best'
                 })
 machine.addTask('test',
                 {
                     "task": {
-                        "version": 102
+                        "version": 214
                     },
                     'load_type': 'last'
                 })
 
-machine.addTask('train',
-                {
-                    'task': {
-                        'version': 103
-                    },
-                    'desc': [
-                        "序列长度为300",
-                        "使用sgd优化",
-                        "使用1层BiLSTM编码,使用1dCNN解码",
-                        "使用经过了stride的conv-n，使用global_pooling",
-                        "使用image和sequence的dnn_cat_ret_cat，四层，减小了维度，在87基础上增加了一层256",
-                        "初始学习率为1e-3"
-                    ],
-                    'model': {
-                        'fusion': {
-                            'dnn_hidden_dims': [256, 256, 128, 64],
-                            'dnn_activations': ['relu', 'relu', 'relu', 'none'],
-                            'dnn_dropouts': [0.3, 0.3, 0.3, 0.3]
-                        }
-                    }
-                })
+# machine.addTask('train',
+#                 {
+#                     'task': {
+#                         'version': 215
+#                     },
+#                     "description": [
+#                         "序列长度为300",
+#                         "使用sgd优化",
+#                         "使用1层BiLSTM编码,使用1dCNN解码",
+#                         "使用经过了stride的conv-n，使用global_pooling",
+#                         "使用image和sequence的dnn_cat_ret,3层，使用与94相同的维度，最后使用relu激活",
+#                         "初始学习率为1e-3",
+#                         "辅助损失系数aux_loss_factor为0.3"
+#                     ],
+#                     'model': {
+#                         'more': {
+#                             'axu_loss_factor': 0.3
+#                         }
+#                     }
+#                 })
 machine.addTask('test',
                 {
                     "task": {
-                        "version": 103
+                        "version": 215
                     },
                     'load_type': 'best'
                 })
 machine.addTask('test',
                 {
                     "task": {
-                        "version": 103
+                        "version": 215
                     },
                     'load_type': 'last'
                 })
 
-machine.addTask('train',
-                {
-                    'task': {
-                        'version': 104
-                    },
-                    'desc': [
-                        "序列长度为300",
-                        "使用sgd优化",
-                        "使用1层BiLSTM编码,使用1dCNN解码",
-                        "使用经过了stride的conv-n，使用global_pooling",
-                        "使用image和sequence的dnn_cat_ret_cat，五层，减小了维度，在87基础上增加了1层256和128",
-                        "初始学习率为1e-3"
-                    ],
-                    'model': {
-                        'fusion': {
-                            'dnn_hidden_dims': [256, 256, 128, 128, 64],
-                            'dnn_activations': ['relu', 'relu', 'relu', 'relu', 'none'],
-                            'dnn_dropouts': [0.3, 0.3, 0.3, 0.3, 0.3]
-                        }
-                    }
-                })
+# machine.addTask('train',
+#                 {
+#                     'task': {
+#                         'version': 216
+#                     },
+#                     "description": [
+#                         "序列长度为300",
+#                         "使用sgd优化",
+#                         "使用1层BiLSTM编码,使用1dCNN解码",
+#                         "使用经过了stride的conv-n，使用global_pooling",
+#                         "使用image和sequence的dnn_cat_ret,3层，使用与94相同的维度，最后使用relu激活",
+#                         "初始学习率为1e-3",
+#                         "辅助损失系数aux_loss_factor为0.2"
+#                     ],
+#                     'model': {
+#                         'more': {
+#                             'axu_loss_factor': 0.2
+#                         }
+#                     }
+#                 })
 machine.addTask('test',
                 {
                     "task": {
-                        "version": 104
+                        "version": 216
                     },
                     'load_type': 'best'
                 })
 machine.addTask('test',
                 {
                     "task": {
-                        "version": 104
+                        "version": 216
                     },
                     'load_type': 'last'
                 })
+
+# machine.addTask('train',
+#                 {
+#                     'task': {
+#                         'version': 217
+#                     },
+#                     "description": [
+#                         "序列长度为300",
+#                         "使用sgd优化",
+#                         "使用1层BiLSTM编码,使用1dCNN解码",
+#                         "使用经过了stride的conv-n，使用global_pooling",
+#                         "使用image和sequence的dnn_cat_ret,3层，使用与94相同的维度，最后使用relu激活",
+#                         "初始学习率为1e-3",
+#                         "辅助损失系数aux_loss_factor为0.1"
+#                     ],
+#                     'model': {
+#                         'more': {
+#                             'axu_loss_factor': 0.1
+#                         }
+#                     }
+#                 })
+machine.addTask('test',
+                {
+                    "task": {
+                        "version": 217
+                    },
+                    'load_type': 'best'
+                })
+machine.addTask('test',
+                {
+                    "task": {
+                        "version": 217
+                    },
+                    'load_type': 'last'
+                })
+
+# machine.addTask('train',
+#                 {
+#                     'task': {
+#                         'version': 218
+#                     },
+#                     "description": [
+#                         "序列长度为300",
+#                         "使用sgd优化",
+#                         "使用1层BiLSTM编码,使用1dCNN解码",
+#                         "使用经过了stride的conv-n，使用global_pooling",
+#                         "使用image和sequence的dnn_cat_ret,3层，使用与94相同的维度，最后使用relu激活",
+#                         "初始学习率为1e-3",
+#                         "辅助损失系数aux_loss_factor为0.05"
+#                     ],
+#                     'model': {
+#                         'more': {
+#                             'axu_loss_factor': 0.05
+#                         }
+#                     }
+#                 })
+machine.addTask('test',
+                {
+                    "task": {
+                        "version": 218
+                    },
+                    'load_type': 'best'
+                })
+machine.addTask('test',
+                {
+                    "task": {
+                        "version": 218
+                    },
+                    'load_type': 'last'
+                })
+
 
 # machine.addTask('train',
 #                 {

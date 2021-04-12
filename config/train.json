@@ -4,7 +4,7 @@
         "k": 5,
         "n": 5,
         "qk": 5,
-        "version": 111,
+        "version": 122,
         "device_id": 0,
         "preload_state_dict_versions": []
     },
@@ -23,8 +23,10 @@
         "使用sgd优化",
         "使用1层BiLSTM编码,使用1dCNN解码",
         "使用经过了stride的conv-n，使用global_pooling",
-        "使用image和sequence的cat",
-        "初始学习率为1e-3"
+        "使用image和sequence的dnn_cat_ret,3层，使用与94相同的维度，最后使用relu激活",
+        "初始学习率为1e-3",
+        "同120，但是early stop标准改回loss",
+        "seq辅助损失系数为0.2，img辅助损失系数为0.1"
     ],
     "model": {
         "model_name": "MLossSIMPLE",
@@ -36,7 +38,7 @@
             }
         },
         "fusion": {
-            "type": "cat",
+            "type": "dnn_cat_ret_cat",
             "params": {
                 "bili_norm_type": "bn",
                 "bili_affine": true,
@@ -54,7 +56,7 @@
                 "dnn_activations": [
                     "relu",
                     "relu",
-                    "none"
+                    "relu"
                 ],
                 "dnn_dropouts": [
                     0.3,
@@ -156,7 +158,8 @@
         "more": {
             "temperature": 1,
             "distance_type": "euc",
-            "aux_loss_factor": 0.2
+            "aux_loss_seq_factor": 0.2,
+            "aux_loss_img_factor": 0.1
         },
         "cluster": {
             "cluster_num_step": 1,
@@ -203,7 +206,7 @@
         }
     },
     "visualization": {
-        "enabled": false,
+        "enabled": true,
         "type": "visdom",
         "record_gradient": false,
         "gradient_update_cycle": 1000,
