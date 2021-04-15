@@ -111,6 +111,12 @@ class TestConfig:
         desc = []
         for d in self.Desc:
             desc.append(d)
+
+        # 额外添加一个last/best模型使用说明
         desc.append(f'{self.LoadType} used')
+        if self.Subset != 'test':
+            # 额外添加一个测试数据子集说明
+            desc.append(f'{self.Subset} set used')
+
         # ...
         return desc
