@@ -1,7 +1,9 @@
 from torch import nn
 import torch
-
 from copy import deepcopy
+
+from builder.activation_builder import buildActivation
+from builder.normalization_builder import buildNormalization
 
 
 ###########################################
@@ -23,23 +25,32 @@ class BilinearFusion(nn.Module):
         else:
             self.Dropout = nn.Dropout(bili_dropout)
 
-        # 使用一个标准化层来约束输出，防止输出值过大
-        if bili_norm_type == 'bn':
-            self.Norm = nn.BatchNorm1d(output_dim, affine=bili_affine)
-        elif bili_norm_type == 'ln':
-            # LayerNorm的标准化范围只有输出维度
-            self.Norm = nn.LayerNorm(output_dim, elementwise_affine=bili_affine)
-        else:
-            raise ValueError(f'[BilinearFusion] Unrecognized normalization type: {bili_norm_type}')
+        self.Norm = buildNormalization(norm_name=bili_norm_type,
+                                       feature_shape=output_dim,
+                                       affine=bili_affine,
+                                       norm_name_map={'bn': 'bn_1d'})
 
-        if bili_non_linear is None:
-            self.NonLinear = nn.Identity()
-        elif bili_non_linear == 'tanh':
-            self.NonLinear = nn.Tanh()
-        elif bili_non_linear == 'sigmoid':
-            self.NonLinear = nn.Sigmoid()
-        else:
-            raise ValueError(f'[BilinearFusion] Unrecognized non-linear type: {bili_non_linear}')
+        # # 使用一个标准化层来约束输出，防止输出值过大
+        # if bili_norm_type == 'bn':
+        #     self.Norm = nn.BatchNorm1d(output_dim, affine=bili_affine)
+        # elif bili_norm_type == 'ln':
+        #     # LayerNorm的标准化范围只有输出维度
+        #     self.Norm = nn.LayerNorm(output_dim, elementwise_affine=bili_affine)
+        # else:
+        #     raise ValueError(f'[BilinearFusion] Unrecognized normalization type: {bili_norm_type}')
+
+        self.NonLinear = buildActivation(bili_non_linear)
+
+        # if bili_non_linear is None:
+        #     self.NonLinear = nn.Identity()
+        # elif bili_non_linear == 'tanh':
+        #     self.NonLinear = nn.Tanh()
+        # elif bili_non_linear == 'sigmoid':
+        #     self.NonLinear = nn.Sigmoid()
+        # elif bili_non_linear == 'relu':
+        #     self.NonLinear = nn.ReLU()
+        # else:
+        #     raise ValueError(f'[BilinearFusion] Unrecognized non-linear type: {bili_non_linear}')
 
     def forward(self, seq_features, img_features, **kwargs):
         fused_features = self.Trans(seq_features, img_features)
@@ -74,23 +85,31 @@ class HdmProdBilinearFusion(nn.Module):
         else:
             self.Dropout = nn.Dropout(bili_dropout)
 
-        if bili_norm_type is None:
-            self.Norm = nn.Identity()
-        elif bili_norm_type == 'bn':
-            self.Norm = nn.BatchNorm1d(output_dim, affine=bili_affine)
-        elif bili_norm_type == 'ln':
-            self.Norm = nn.LayerNorm(output_dim, elementwise_affine=bili_affine)
-        else:
-            raise ValueError(f'[HdmProdBilinearFusion] Unrecognized normalization type: {bili_norm_type}')
+        self.Norm = buildNormalization(norm_name=bili_norm_type,
+                                       feature_shape=output_dim,
+                                       affine=bili_affine,
+                                       norm_name_map={'bn': 'bn_1d'})
 
-        if bili_non_linear is None:
-            self.NonLinear = nn.Identity()
-        elif bili_non_linear == 'tanh':
-            self.NonLinear = nn.Tanh()
-        elif bili_non_linear == 'sigmoid':
-            self.NonLinear = nn.Sigmoid()
-        else:
-            raise ValueError(f'[HdmProdBilinearFusion] Unrecognized non-linear type: {bili_non_linear}')
+        # if bili_norm_type is None:
+        #     self.Norm = nn.Identity()
+        # elif bili_norm_type == 'bn':
+        #     self.Norm = nn.BatchNorm1d(output_dim, affine=bili_affine)
+        # elif bili_norm_type == 'ln':
+        #     self.Norm = nn.LayerNorm(output_dim, elementwise_affine=bili_affine)
+        # else:
+        #     raise ValueError(f'[HdmProdBilinearFusion] Unrecognized normalization type: {bili_norm_type}')
+
+        self.NonLinear = buildActivation(bili_non_linear)
+        # if bili_non_linear is None:
+        #     self.NonLinear = nn.Identity()
+        # elif bili_non_linear == 'tanh':
+        #     self.NonLinear = nn.Tanh()
+        # elif bili_non_linear == 'sigmoid':
+        #     self.NonLinear = nn.Sigmoid()
+        # elif bili_non_linear == 'relu':
+        #     self.NonLinear = nn.ReLU()
+        # else:
+        #     raise ValueError(f'[HdmProdBilinearFusion] Unrecognized non-linear type: {bili_non_linear}')
 
     def forward(self, seq_features, img_features, **kwargs):
         prod = self.SeqTrans(seq_features) * self.ImgTrans(img_features)

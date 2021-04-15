@@ -1,17 +1,22 @@
 import torch
 from torch import nn
 
+from builder.activation_builder import buildActivation
+
 
 def _dnn_block(_in_dim, _out_dim, _activation, _dropout):
     blocks = [nn.Linear(_in_dim, _out_dim)]
 
-    if _activation is not None:
-        if _activation == 'relu':
-            blocks.append(nn.ReLU())
-        elif _activation == 'tanh':
-            blocks.append(nn.Tanh())
-        elif _activation != 'none':
-            raise ValueError(f'[dnn_fusion] Unrecognized dnn_block activation: {_activation}')
+    activation_block = buildActivation(_activation)
+    blocks.append(activation_block)
+
+    # if _activation is not None:
+    #     if _activation == 'relu':
+    #         blocks.append(nn.ReLU())
+    #     elif _activation == 'tanh':
+    #         blocks.append(nn.Tanh())
+    #     elif _activation != 'none':
+    #         raise ValueError(f'[dnn_fusion] Unrecognized dnn_block activation: {_activation}')
 
     if _dropout is not None:
         blocks.append(nn.Dropout(_dropout))
