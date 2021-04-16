@@ -2,6 +2,7 @@ import torch
 from torch import nn
 
 from builder.activation_builder import buildActivation
+from builder.normalization_builder import buildNormalization
 
 
 def _dnn_block(_in_dim, _out_dim, _activation, _dropout):
@@ -9,14 +10,6 @@ def _dnn_block(_in_dim, _out_dim, _activation, _dropout):
 
     activation_block = buildActivation(_activation)
     blocks.append(activation_block)
-
-    # if _activation is not None:
-    #     if _activation == 'relu':
-    #         blocks.append(nn.ReLU())
-    #     elif _activation == 'tanh':
-    #         blocks.append(nn.Tanh())
-    #     elif _activation != 'none':
-    #         raise ValueError(f'[dnn_fusion] Unrecognized dnn_block activation: {_activation}')
 
     if _dropout is not None:
         blocks.append(nn.Dropout(_dropout))
@@ -42,6 +35,7 @@ class _DNNFusion(nn.Module):
         ]
 
         self.Layers = nn.Sequential(*layers)
+        self._DnnOutputDim = dnn_hidden_dims[-1]
 
     def dnn_forward(self, x):
         return self.Layers(x)
@@ -52,6 +46,8 @@ class DNNCatFusion(_DNNFusion):
                  dnn_hidden_dims,
                  dnn_activations,
                  dnn_dropouts,
+                 dnn_norm_type=None,
+                 feature_dims={},
                  **kwargs):
 
         super().__init__(input_dim,
@@ -60,9 +56,13 @@ class DNNCatFusion(_DNNFusion):
                          dnn_dropouts,
                          **kwargs)
 
+        cat_dim = self._DnnOutputDim
+        self.Norm = buildNormalization(dnn_norm_type, cat_dim,
+                                       norm_name_map={'bn': 'bn_1d', 'in': 'in_1d'})
+
     def forward(self, seq_features, img_features, fused_dim=1, **kwargs):
         cat_features = torch.cat((seq_features, img_features), dim=fused_dim)
-        return self.dnn_forward(cat_features)
+        return self.Norm(self.dnn_forward(cat_features))
 
 
 class DNNCatRetCatFusion(_DNNFusion):
@@ -70,6 +70,8 @@ class DNNCatRetCatFusion(_DNNFusion):
                  dnn_hidden_dims,
                  dnn_activations,
                  dnn_dropouts,
+                 dnn_norm_type=None,
+                 feature_dims={},
                  **kwargs):
 
         super().__init__(input_dim,
@@ -78,10 +80,19 @@ class DNNCatRetCatFusion(_DNNFusion):
                          dnn_dropouts,
                          **kwargs)
 
+        try:
+            seq_dim = feature_dims['seq']
+        except KeyError as e:
+            raise ValueError(f"[DNNCatRetCatFusion] Unable to fetch sequence dim from param: {str(e)}")
+
+        cat_dim = seq_dim + self._DnnOutputDim
+        self.Norm = buildNormalization(dnn_norm_type, cat_dim,
+                                       norm_name_map={'bn': 'bn_1d', 'in': 'in_1d'})
+
     def forward(self, seq_features, img_features, fused_dim=1, **kwargs):
         cat_features = torch.cat((seq_features, img_features), dim=fused_dim)
         cat_features = self.dnn_forward(cat_features)
-        return torch.cat((seq_features, cat_features), dim=fused_dim)       # 返回seq和dnn输出的cat
+        return self.Norm(torch.cat((seq_features, cat_features), dim=fused_dim))       # 返回seq和dnn输出的cat
 
 
 class DNNCatRetCatAllFusion(_DNNFusion):
@@ -89,6 +100,8 @@ class DNNCatRetCatAllFusion(_DNNFusion):
                  dnn_hidden_dims,
                  dnn_activations,
                  dnn_dropouts,
+                 dnn_norm_type=None,
+                 feature_dims={},
                  **kwargs):
 
         super().__init__(input_dim,
@@ -97,11 +110,21 @@ class DNNCatRetCatAllFusion(_DNNFusion):
                          dnn_dropouts,
                          **kwargs)
 
+        try:
+            seq_dim = feature_dims['seq']
+            img_dim = feature_dims['img']
+        except KeyError as e:
+            raise ValueError(f"[DNNCatRetCatAllFusion] Unable to fetch sequence/image dim from param: {str(e)}")
+
+        cat_dim = seq_dim + img_dim + self._DnnOutputDim
+        self.Norm = buildNormalization(dnn_norm_type, cat_dim,
+                                       norm_name_map={'bn': 'bn_1d', 'in': 'in_1d'})
+
     def forward(self, seq_features, img_features, fused_dim=1, **kwargs):
         cat_features = torch.cat((seq_features, img_features), dim=fused_dim)
         cat_features = self.dnn_forward(cat_features)
 
         # 返回seq，img和dnn输出的三层cat
-        return torch.cat((seq_features, img_features, cat_features), dim=fused_dim)
+        return self.Norm(torch.cat((seq_features, img_features, cat_features), dim=fused_dim))
 
 

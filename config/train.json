@@ -4,7 +4,7 @@
         "k": 5,
         "n": 5,
         "qk": 5,
-        "version": 122,
+        "version": 133,
         "device_id": 0,
         "preload_state_dict_versions": []
     },
@@ -18,16 +18,16 @@
         "verbose": true,
         "clip_grad_norm": null
     },
-    "description": [
-        "序列长度为300",
-        "使用sgd优化",
-        "使用1层BiLSTM编码,使用1dCNN解码",
-        "使用经过了stride的conv-n，使用global_pooling",
-        "使用image和sequence的dnn_cat_ret,3层，使用与94相同的维度，最后使用relu激活",
-        "初始学习率为1e-3",
-        "同120，但是early stop标准改回loss",
-        "seq辅助损失系数为0.2，img辅助损失系数为0.1"
-    ],
+    "description": {
+        "seq_len": "序列长度为300",
+        "optimizer": "使用sgd优化",
+        "seq_embed": "使用1层BiLSTM编码,使用1dCNN解码",
+        "img_embed":"使用经过了stride的conv-n，使用global_pooling",
+        "fusion":"使用image和sequence的dnn_cat_ret,3层，使用与94相同的维度，最后使用relu激活",
+        "lr":"初始学习率为1e-3",
+        "aux_loss":"seq辅助损失系数为1，img辅助损失系数为0.1",
+        "other-1":"参数基本同125，在fusion输出前添加了instance_norm"
+    },
     "model": {
         "model_name": "MLossSIMPLE",
         "reproject": {
@@ -62,7 +62,8 @@
                     0.3,
                     0.3,
                     0.3
-                ]
+                ],
+                "dnn_norm_type": "in"
             }
         },
         "embedding": {
@@ -158,8 +159,9 @@
         "more": {
             "temperature": 1,
             "distance_type": "euc",
-            "aux_loss_seq_factor": 0.2,
-            "aux_loss_img_factor": 0.1
+            "aux_loss_seq_factor": 1,
+            "aux_loss_img_factor": 0.1,
+            "aux_loss_learnable": false
         },
         "cluster": {
             "cluster_num_step": 1,

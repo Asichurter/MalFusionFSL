@@ -96,8 +96,10 @@ def _seqAttendImgResAttOnly(model, train_params: config.ParamsConfig):
 def _dnnCat(model, train_params: config.ParamsConfig):
     sdim, idim = model.SeqFeatureDim, model.ImgFeatureDim
     model.FusedFeatureDim = train_params.Fusion['params']['dnn_hidden_dims'][-1]    # 融合后输出维度是dnn的最后一层的神经元数量
+    feature_dims = {'seq': sdim, 'img': idim}
 
     return DNNCatFusion(input_dim=sdim+idim,
+                        feature_dims=feature_dims,
                         **train_params.Fusion['params'])
 
 
@@ -105,16 +107,21 @@ def _dnnCatRetCat(model, train_params: config.ParamsConfig):
     sdim, idim = model.SeqFeatureDim, model.ImgFeatureDim
     dnn_out_dim = train_params.Fusion['params']['dnn_hidden_dims'][-1]
     model.FusedFeatureDim = sdim + dnn_out_dim
+    feature_dims = {'seq': sdim, 'img': idim}
 
     return DNNCatRetCatFusion(input_dim=sdim+idim,
+                              feature_dims=feature_dims,
                               **train_params.Fusion['params'])
+
 
 def _dnnCatRetCatAll(model, train_params: config.ParamsConfig):
     sdim, idim = model.SeqFeatureDim, model.ImgFeatureDim
     dnn_out_dim = train_params.Fusion['params']['dnn_hidden_dims'][-1]
     model.FusedFeatureDim = sdim + idim + dnn_out_dim
+    feature_dims = {'seq': sdim, 'img': idim}
 
     return DNNCatRetCatAllFusion(input_dim=sdim + idim,
+                                 feature_dims=feature_dims,
                                  **train_params.Fusion['params'])
 
 
