@@ -5,8 +5,12 @@ from .structs import *
 from .structs import _loadJsonConfig
 from .const import *
 
+cudaDevice = None
 
 def _setCudaDevice(task_config: TaskConfig):
+    global cudaDevice
+    cudaDevice = task_config.DeviceId
+
     if task_config.DeviceId is not None:
         os.environ["CUDA_VISIBLE_DEVICES"] = str(task_config.DeviceId)
 

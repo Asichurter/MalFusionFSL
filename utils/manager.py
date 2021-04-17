@@ -8,6 +8,7 @@ from utils.file import dumpJson, loadJson
 from utils.os import joinPath
 from utils.timer import StepTimer
 from utils.stat import calBeliefeInterval
+from utils.gpu import GPUManager
 
 ##########################################################
 # 项目数据集路径管理器。
@@ -371,6 +372,7 @@ class TestStatManager:
         self.TestIterCount = 0
         self.TotalIter = total_iter
         self.ReportIter = test_report_iter
+        self.GPUManager = GPUManager(config.cudaDevice)
 
         self.Verbose = verbose
 
@@ -397,10 +399,8 @@ class TestStatManager:
     def _printBlockSeg(self):
         print('\n\n****************************************')
 
-
     def _printSectionSeg(self):
         print("---------------------------------")
-
 
     def dump(self, path, key='test_result', desc=[]):
         metric_names = self.TestStat.MetricNames
@@ -423,7 +423,9 @@ class TestStatManager:
                 n: '%.5f'%v+'±'+'%.5f'%itv for n,v,itv in zip(metric_names, metrics, metric_intervals)
             },
             'loss': '%.5f'%loss+'±'+'%.5f'%loss_interval,
-            'desc': desc
+            'desc': desc,
+            'test_time_per_episode': self.Timer.getTotalTimeStat(stat_type='avg'),
+            'gpu_mem_used': self.GPUManager.getGPUUsedMem(unit='M')
         }
 
         test_result[key].append(result_obj)

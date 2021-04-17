@@ -1,13 +1,15 @@
 import time
 
-class StepTimer:
 
+class StepTimer:
     def __init__(self, total_steps=None):
         self.Lauched = False
         self.LastStep = None
         self.BeginStep = None
         self.TotalSteps = total_steps
         self.CurrentStep = 0
+
+        self.CachedData = {}
 
     def begin(self):
         self.Lauched = True
@@ -37,7 +39,17 @@ class StepTimer:
 
         if end:
             all_time = time.time() - self.BeginStep
-            all_hour = all_time // 3600
-            all_minute = (all_time % 3600) // 60
-            all_second = all_time % 60
-            return "%02d:%02d:%02d"%(all_hour, all_minute, all_second)
+            self.CachedData['total_time'] = all_time
+            self.CachedData['avg_time_per_step'] = all_time / self.TotalSteps
+            # all_hour = all_time // 3600
+            # all_minute = (all_time % 3600) // 60
+            # all_second = all_time % 60
+            # return "%02d:%02d:%02d"%(all_hour, all_minute, all_second)
+
+    def getTotalTimeStat(self, stat_type='total'):
+        if stat_type == 'total':
+            return self.CachedData['total_time']
+        elif stat_type == 'avg':
+            return self.CachedData['avg_time_per_step']
+        else:
+            raise ValueError(f"[StepTimer] Unrecognized stat type: {stat_type}")
