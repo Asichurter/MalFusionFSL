@@ -1,6 +1,7 @@
 from torch import nn
 import torch
 
+from builder.activation_builder import buildActivation
 
 class FCProject(nn.Module):
 
@@ -9,17 +10,7 @@ class FCProject(nn.Module):
 
         self.Linear = nn.Linear(in_dim, out_dim, bias=False)
         self.Norm = nn.BatchNorm1d(out_dim, affine=False)
-
-        if non_linear is None:
-            self.NonLinear = nn.Identity()
-        elif non_linear == 'sigmoid':
-            self.NonLinear = nn.Sigmoid()
-        elif non_linear == 'tanh':
-            self.NonLinear = nn.Tanh()
-        elif non_linear == 'relu':
-            self.NonLinear = nn.ReLU()
-        else:
-            raise ValueError(f'[FCProject] Unrecognized non-linear type: {non_linear}')
+        self.NonLinear = buildActivation(non_linear)
 
         if dropout is not None:
             self.Dropout = nn.Dropout(dropout)

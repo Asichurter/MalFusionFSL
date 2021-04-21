@@ -1,17 +1,17 @@
 {
     "task": {
         "dataset": "virushare-20",
-        "k": 5,
-        "n": 5,
+        "k": 10,
+        "n": 10,
         "qk": 5,
-        "version": 122,
+        "version": 6,
         "device_id": 0
     },
     "model_name": null,
-    "testing_epoch": 10000,
+    "testing_epoch": 5000,
     "report_iter": 100,
     "data_source": null,
-    "load_type": "last",
+    "load_type": "best",
     "test_subset": "test",
     "metrics": [
         "acc"
@@ -19,6 +19,5 @@
     "verbose": true,
     "fine_tuning": {},
     "description": [
-        "使用last，10000轮"
     ]
 }

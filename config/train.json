@@ -2,49 +2,48 @@
     "task": {
         "dataset": "virushare-20",
         "k": 5,
-        "n": 5,
+        "n": 10,
         "qk": 5,
-        "version": 133,
+        "version": 300,
         "device_id": 0,
         "preload_state_dict_versions": []
     },
     "training": {
-        "epoch": 20000,
+        "epoch": 30000,
         "data_source": [
             "sequence",
             "image"
         ],
         "split_version": 1,
-        "verbose": true,
+        "verbose": false,
         "clip_grad_norm": null
     },
     "description": {
         "seq_len": "序列长度为300",
         "optimizer": "使用sgd优化",
         "seq_embed": "使用1层BiLSTM编码,使用1dCNN解码",
-        "img_embed":"使用经过了stride的conv-n，使用global_pooling",
-        "fusion":"使用image和sequence的dnn_cat_ret,3层，使用与94相同的维度，最后使用relu激活",
-        "lr":"初始学习率为1e-3",
-        "aux_loss":"seq辅助损失系数为1，img辅助损失系数为0.1",
-        "other-1":"参数基本同125，在fusion输出前添加了instance_norm"
+        "img_embed": "使用经过了stride的conv-n，使用global_pooling",
+        "fusion": "使用image和sequence的cat",
+        "reproject": "无",
+        "lr": "初始学习率为1e-3"
     },
     "model": {
-        "model_name": "MLossSIMPLE",
+        "model_name": "ProtoNet",
         "reproject": {
             "enabled": false,
             "params": {
-                "out_dim": 64,
-                "non_linear": null
+                "out_dim": 256,
+                "non_linear": "relu"
             }
         },
         "fusion": {
-            "type": "dnn_cat_ret_cat",
+            "type": "cat",
             "params": {
                 "bili_norm_type": "bn",
                 "bili_affine": true,
                 "bili_non_linear": "tanh",
-                "bili_dropout": 0.2,
-                "att_dropout": 0.2,
+                "bili_dropout": 0.3,
+                "att_dropout": 0.3,
                 "att_scale_factor": 1,
                 "hidden_dim": 64,
                 "output_dim": 64,
@@ -63,7 +62,7 @@
                     0.3,
                     0.3
                 ],
-                "dnn_norm_type": "in"
+                "dnn_norm_type": "none"
             }
         },
         "embedding": {
@@ -108,7 +107,7 @@
                         true,
                         true,
                         true,
-                        false
+                        true
                     ]
                 }
             }
@@ -208,7 +207,7 @@
         }
     },
     "visualization": {
-        "enabled": true,
+        "enabled": false,
         "type": "visdom",
         "record_gradient": false,
         "gradient_update_cycle": 1000,

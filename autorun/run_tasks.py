@@ -1,53 +1,115 @@
+import os
+
 from autorun.machine import ExecuteMachine
+from utils.manager import PathManager
 
 machine = ExecuteMachine(exe_bin='/opt/anaconda3/bin/python')
 
-# machine.addTask('train',
-#                 flatten_update_config={
-#                     'task|version': 133,
-#                     'description|other-1': '参数基本同125，在fusion输出前添加了layer_norm',
-#                     # 'description|fusion': 'test fusion',
-#                     'model|fusion|params|dnn_norm_type': 'ln',
-#                     # 'model|more|aux_loss_seq_factor': 0.5
-#                 })
-# machine.addTask('test',
-#                 {
-#                     "task": {
-#                         "version": 133
-#                     },
-#                     'load_type': 'best'
-#                 })
-# machine.addTask('test',
-#                 {
-#                     "task": {
-#                         "version": 133
-#                     },
-#                     'load_type': 'last'
-#                 })
+# tasks = {
+#     336: {
+#         'task|version': 336,
+#         'model|model_name': 'ProtoNet',
+#         'model|fusion|type': 'cat'
+#     },
+#     337: {
+#         'task|version': 337,
+#         'description|reproject': 'fusion之前使用了256的重投影',
+#         'description|fusion': '使用image和sequence的add',
+#         'model|model_name': 'ProtoNet',
+#         'model|fusion|type': 'add',
+#         'model|reproject|enabled': True,
+#         'model|reproject|params|out_dim': 256
+#     },
+#     338: {
+#         'task|version': 338,
+#         'description|reproject': 'fusion之前使用了256的重投影',
+#         'description|fusion': '使用image和sequence的prod',
+#         'model|model_name': 'ProtoNet',
+#         'model|fusion|type': 'prod',
+#         'model|reproject|enabled': True,
+#         'model|reproject|params|out_dim': 256
+#     },
+#     339: {
+#         'task|version': 339,
+#         'description|reproject': '无',
+#         'description|fusion': '使用image和sequence的bilinear，输出维度为256,tanh激活，bn标准化',
+#         'model|model_name': 'ProtoNet',
+#         'model|reproject|enabled': False,
+#         'model|fusion|type': 'bili',
+#         'model|fusion|params|output_dim': 256
+#     },
+#     340: {
+#         'task|version': 340,
+#         'description|fusion': '使用image和sequence的hmd_bili，隐藏维度512，输出维度为256,tanh激活，bn标准化',
+#         'model|model_name': 'ProtoNet',
+#         'model|fusion|type': 'hdm_bili',
+#         'model|fusion|params|output_dim': 256,
+#         'model|fusion|params|hidden_dim': 512
+#     },
+#     341: {
+#         'task|version': 341,
+#         'description|img_embed': '使用经过了stride的conv-n，不经过global_pooling，输出patch',
+#         'description|fusion': '使用image和sequence的seq_attend_img_att_only,隐藏维度为512，不使用注意力缩放因子',
+#         'model|model_name': 'ProtoNet',
+#         'model|fusion|type': 'seq_attend_img_att_only',
+#         'model|fusion|params|hidden_dim': 512,
+#         'model|conv_backbone|params|conv-n|global_pooling': False,
+#         'model|conv_backbone|params|conv-n|out_type': 'patch',
+#     },
+#     342: {
+#         'task|version': 342,
+#         'description|img_embed': '使用经过了stride的conv-n，不经过global_pooling，输出patch',
+#         'description|fusion': '使用image和sequence的seq_attend_img_cat,隐藏维度为512，不使用注意力缩放因子',
+#         'model|model_name': 'ProtoNet',
+#         'model|fusion|type': 'seq_attend_img_cat',
+#         'model|fusion|params|hidden_dim': 512,
+#         'model|conv_backbone|params|conv-n|global_pooling': False,
+#         'model|conv_backbone|params|conv-n|out_type': 'patch',
+#     },
+#     343: {
+#         'task|version': 343,
+#         'description|img_embed': '使用经过了stride的conv-n，使用global_pooling',
+#         'description|fusion': '使用image和sequence的dnn_cat,三层，同126配置',
+#         'model|model_name': 'ProtoNet',
+#         'model|fusion|type': 'dnn_cat',
+#         'model|conv_backbone|params|conv-n|global_pooling': True,
+#     },
+#     344: {
+#         'task|version': 344,
+#         'description|img_embed': '使用经过了stride的conv-n，使用global_pooling',
+#         'description|fusion': '使用image和sequence的dnn_cat_ret_cat,三层，同126配置',
+#         'model|model_name': 'ProtoNet',
+#         'model|fusion|type': 'dnn_cat_ret_cat'
+#     },
+# }
+
+# for ver, conf in tasks.items():
+#     machine.addTask('train', flatten_update_config=conf)
+#     machine.addTask('test', flatten_update_config={
+#         'task|version': ver,
+#         'load_type': 'best',
+#     })
+#     machine.addTask('test', flatten_update_config={
+#         'task|version': ver,
+#         'load_type': 'last',
+#     })
+
+s_ver, e_ver = 318, 326
+for ver in range(s_ver, e_ver + 1):
+    pm = PathManager(dataset='virushare-20',
+                     version=ver)
+    if os.path.exists(pm.doc()+'test_result.json'):
+        os.remove(pm.doc()+'test_result.json')
+    machine.addTask('test', flatten_update_config={
+        'task|version': ver,
+        'load_type': 'best',
+    })
+    machine.addTask('test', flatten_update_config={
+        'task|version': ver,
+        'load_type': 'last',
+    })
 
 
-machine.addTask('train',
-                flatten_update_config={
-                    'task|version': 134,
-                    'description|other-1': '',
-                    # 'description|fusion': 'test fusion',
-                    'model|fusion|params|dnn_norm_type': 'none',
-                    'model|more|aux_loss_seq_factor': 0.5
-                })
-machine.addTask('test',
-                {
-                    "task": {
-                        "version": 134
-                    },
-                    'load_type': 'best'
-                })
-machine.addTask('test',
-                {
-                    "task": {
-                        "version": 134
-                    },
-                    'load_type': 'last'
-                })
 
 # machine.addTask('train',
 #                 {

@@ -33,28 +33,29 @@ from utils.manager import PathManager
 #                     log_file_path="/home/omnisky/NewAsichurter/FusionData/reports/class_stat_after_processing_log.json",
 #                     num_per_class=35)
 #
-# trainGloVe(base_path='/home/omnisky/NewAsichurter/FusionData/datasets/',
-#            dataset='LargePE-Per35',
+pm = PathManager(dataset="virushare-20")
+# trainGloVe(base_path=pm.rootBase(),
+#            dataset='virushare-20',
 #            size=300,
 #            type='all')
 
 # renamePEbyMD5fromApi(api_dir_path='/home/omnisky/NewAsichurter/FusionData/datasets/LargePE-Per40/all/api/',
 #                      pe_dir_path='/home/omnisky/NewAsichurter/FusionData/datasets/LargePE-Per40/all/pe/')
 
-# convertDir2Image(dir_path='/home/omnisky/NewAsichurter/FusionData/datasets/LargePE-Per40/PEs/',
-#                  dst_path='/home/omnisky/NewAsichurter/FusionData/datasets/LargePE-Per40/all/img/')
+# convertDir2Image(dir_path='F:/FSL_mal_data/datasets/virushare-20/all/pe/',
+#                  dst_path='F:/FSL_mal_data/datasets/virushare-20/all/img/')
 
-pm = PathManager(dataset="virushare-20")
 # splitDataset(dataset_path=pm.datasetBase(),
-#              validate_ratio=30,
-#              test_ratio=30)
+#              validate_ratio=20,
+#              test_ratio=20)
 
-# revertDatasetSplit(dataset="virushare-20", dump_path=pm.dataBase()+"split_2.json")
+revertDatasetSplit(dataset="virushare-20", dump_path=pm.dataBase()+"split_1.json")
 # dumpDatasetSplitStruct(pm.datasetBase(),
-#                        pm.dataBase()+'split_2.json',
-#                        desc=['ProtoNet: 66%',
-#                              'NnNet: 67~68%'])
+#                        pm.dataBase()+'split_1.json',
+#                        desc=['common split'])
 packAllSubsets("virushare-20", num_per_class=20, max_seq_len=300)
+
+
 
 
 
