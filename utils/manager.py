@@ -273,7 +273,7 @@ class TrainStatManager:
     def begin(self):
         if self.Verbose:
             self._printNextTip()
-            self.Timer.begin()
+        self.Timer.begin()
 
     def recordTrain(self, metric, loss):
         self.TrainStat.record(metric, loss)
@@ -377,24 +377,25 @@ class TestStatManager:
         self.Verbose = verbose
 
     def begin(self):
-        if self.Verbose:
-            self.Timer.begin()
+        self.Timer.begin()
 
     def recordTest(self, metric, loss):
         self.TestStat.record(metric, loss)
         self.TestIterCount += 1
 
-        if self.TestIterCount == self.TotalIter and self.Verbose:
-            self._printBlockSeg()
-            print('Final Statistics:')
-            self.TestStat.printAllTime(title="Final Test")
-            self.Timer.step(step_stride=self.ReportIter, prt=True, end=True)
+        if self.TestIterCount == self.TotalIter:
+            if self.Verbose:
+                self._printBlockSeg()
+                print('Final Statistics:')
+                self.TestStat.printAllTime(title="Final Test")
+            self.Timer.step(step_stride=self.ReportIter, prt=self.Verbose, end=True)
 
-        elif self.TestIterCount % self.ReportIter == 0 and self.Verbose:
-            self._printBlockSeg()
-            print(self.TestIterCount, "Epoch")
-            self.TestStat.printRecent(title="Test", all_time=True)
-            self.Timer.step(step_stride=self.ReportIter, prt=True)
+        elif self.TestIterCount % self.ReportIter == 0:
+            if self.Verbose:
+                self._printBlockSeg()
+                print(self.TestIterCount, "Epoch")
+                self.TestStat.printRecent(title="Test", all_time=True)
+            self.Timer.step(step_stride=self.ReportIter, prt=self.Verbose)
 
     def _printBlockSeg(self):
         print('\n\n****************************************')

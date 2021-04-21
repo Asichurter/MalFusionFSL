@@ -8,6 +8,7 @@ class StepTimer:
         self.BeginStep = None
         self.TotalSteps = total_steps
         self.CurrentStep = 0
+        self.TimeFormatter = TimeFormatter()
 
         self.CachedData = {}
 
@@ -29,10 +30,11 @@ class StepTimer:
             print("Time consuming: %.2f" % cycle_time)
             if self.TotalSteps is not None:
                 remaining_time = cycle_time * cycle_remained
-                remaining_hour = remaining_time // 3600
-                remaining_min = (remaining_time % 3600) // 60
-                remaining_sec = (remaining_time % 60)
-                print('time remains:  %02d:%02d:%02d'%(remaining_hour, remaining_min, remaining_sec))
+                # remaining_hour = remaining_time // 3600
+                # remaining_min = (remaining_time % 3600) // 60
+                # remaining_sec = (remaining_time % 60)
+                formatted_time_str = self.TimeFormatter.format(remaining_time)
+                print('time remains:', formatted_time_str)
                 # print("*"*50)
 
         self.LastStep = now_time
@@ -41,10 +43,6 @@ class StepTimer:
             all_time = time.time() - self.BeginStep
             self.CachedData['total_time'] = all_time
             self.CachedData['avg_time_per_step'] = all_time / self.TotalSteps
-            # all_hour = all_time // 3600
-            # all_minute = (all_time % 3600) // 60
-            # all_second = all_time % 60
-            # return "%02d:%02d:%02d"%(all_hour, all_minute, all_second)
 
     def getTotalTimeStat(self, stat_type='total'):
         if stat_type == 'total':
@@ -53,3 +51,20 @@ class StepTimer:
             return self.CachedData['avg_time_per_step']
         else:
             raise ValueError(f"[StepTimer] Unrecognized stat type: {stat_type}")
+
+
+class TimeFormatter:
+    def __init__(self, fmt_str='%02d:%02d:%02d'):
+        self.FormatString = fmt_str
+
+    @staticmethod
+    def _parse(total_second):
+        hour = total_second // 3600
+        minute = (total_second % 3600) // 60
+        second = total_second % 60
+
+        return hour, minute, second
+
+    def format(self, total_second):
+        h, m, s = self._parse(total_second)
+        return self.FormatString % (h, m, s)
