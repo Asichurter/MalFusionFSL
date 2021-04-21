@@ -1,10 +1,12 @@
 import os
+import time
 from pprint import pprint
 from copy import deepcopy
 
 from utils.file import loadJson, dumpJson
 from utils.manager import PathManager
 from utils.os import joinPath
+from utils.timer import TimeFormatter
 
 
 ##############################################
@@ -21,6 +23,7 @@ class ExecuteMachine:
                  check_verbose=True,                    # 是否开启verbose检查，默认为静默模式
                  flags={},                              # 运行flag：对于一对k,v，flag形式为: "-(k) (v)"
                  param_type_config_sep_symbol='|'):    # 使用参数型添加任务时，参数名称的层分隔符号
+        self.TimeFormatter = TimeFormatter()
         self.ExecuteTaskLines = []
         self.ConfigUpdateLines = []
         self.RelativePathToConfig = relative_path_config
@@ -88,7 +91,7 @@ class ExecuteMachine:
             if type(v) != dict:
                 cur_config[k] = v
             elif k in cur_config:
-                self._setFields(cur_config[k], v)
+                self._setFields(cur_config[k], v, force)
             elif force:
                 cur_config[k] = v
             else:
@@ -118,7 +121,7 @@ class ExecuteMachine:
             struct_val = None
             if len(struct_keys) == 0:
                 raise ValueError(f'[ExecuteMachine] Can not parse params type config, len is 0 for {params}')
-            elif len(struct_keys) > 1:
+            elif len(struct_keys) >= 1:
                 struct_val = {struct_keys[-1]: v}
                 for i in reversed(range(0, len(struct_keys)-1)):
                     struct_val = {struct_keys[i]: struct_val}
@@ -128,7 +131,7 @@ class ExecuteMachine:
 
         return parsed_params
 
-    def execute(self):
+    def _summaryTasks(self):
         train_num, test_num = 0, 0
         for task in self.ExecuteTaskLines:
             if task == 'train':
@@ -136,12 +139,20 @@ class ExecuteMachine:
             elif task == 'test':
                 test_num += 1
 
-        print(f'[ExecuteMachine] Summary | Train task: {train_num} | Test task: {test_num}\n\n')
+        print(f'[ExecuteMachine] Task Summary: \n Train task: {train_num} \n Test task: {test_num}\n\n')
+
+    def _printTask(self, idx, task_type, task_config):
+        print(f'\n\n{idx}-th task: {task_type}')
+        pprint(task_config, indent=4)
+
+    def execute(self):
+        self._summaryTasks()
+        start_time = time.time()
 
         execute_flags = ' '.join([f' -{flag_key} {flag_val}' for flag_key, flag_val in self.Flags.items()])
         for i, (task_type, task_config) in enumerate(zip(self.ExecuteTaskLines, self.ConfigUpdateLines)):
-            print(f'\n\n{i}-th {task_type} task\nconfig:')
-            pprint(task_config, indent=4)
+            self._printTask(i, task_type, task_config)
+
             run_script_path = self.RelativePathToRun + task_type + '.py'
             # 包装，检查参数
             task_config = self._checkAndWrapConfig(task_type, task_config)
@@ -157,3 +168,8 @@ class ExecuteMachine:
 
         print(f'[ExecuteMachine] All {len(self.ExecuteTaskLines)} tasks done ' +
               f'({self.ExecuteSuccessCount} success, {self.ExecuteFailCount} fail)')
+
+        total_time = time.time() - start_time
+        formatted_time_str = self.TimeFormatter.format(total_time)
+
+        print(f"[ExecuteMachine] Total time: {formatted_time_str}")
