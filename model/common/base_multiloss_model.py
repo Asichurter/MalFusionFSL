@@ -54,7 +54,7 @@ class BaseMultiLossModel(BaseEmbedModel):
             seq_feature_forward_result = self._feature_forward(embedded_support_seqs, embedded_query_seqs,
                                                                support_labels, query_labels,
                                                                feature_name='sequence')
-            img_feature_forward_result = self._feature_forward(embedded_query_seqs, embedded_query_imgs,
+            img_feature_forward_result = self._feature_forward(embedded_support_imgs, embedded_query_imgs,
                                                                support_labels, query_labels,
                                                                feature_name='image')
 

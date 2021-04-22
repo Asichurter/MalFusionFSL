@@ -138,52 +138,6 @@ class MLossSIMPLE(BaseMultiLossModel):
         loss = weighted_loss(logits, best_targets, weights)
         return loss.mean()
 
-    # def forward(self,                       # forward接受所有可能用到的参数
-    #             support_seqs, support_imgs, support_lens, support_labels,
-    #             query_seqs, query_imgs, query_lens, query_labels,
-    #             epoch=None, metric='euc', is_test=False):
-    #
-    #     embedded_support_seqs, embedded_query_seqs, \
-    #     embedded_support_imgs, embedded_query_imgs = self.embed(support_seqs, query_seqs,
-    #                                                             support_lens, query_lens,
-    #                                                             support_imgs, query_imgs)
-    #
-    #     # 在fusion之前将各个特征forward一次，每个特征产生一个loss
-    #     # 只有在训练时才需要对每个特征进行forward
-    #     if not is_test:
-    #         seq_feature_forward_result = self._feature_forward(embedded_support_seqs, embedded_query_seqs,
-    #                                                            support_labels, query_labels,
-    #                                                            feature_name='sequence')
-    #         img_feature_forward_result = self._feature_forward(embedded_query_seqs, embedded_query_imgs,
-    #                                                            support_labels, query_labels,
-    #                                                            feature_name='image')
-    #
-    #         # 平均各个特征产生的损失
-    #         # seq和img分别使用各自的系数来缩放
-    #         feature_loss = seq_feature_forward_result.get('loss') * self.AuxLossSeqFactor + \
-    #                        img_feature_forward_result.get('loss') * self.AuxLossImgFactor
-    #
-    #     support_fused_features = self._fuse(embedded_support_seqs, embedded_support_imgs, fuse_dim=1)
-    #     query_fused_features = self._fuse(embedded_query_seqs, embedded_query_imgs, fuse_dim=1)
-    #
-    #     # 将特征融合以后再次forward，产生一个fusion之后的损失和logits
-    #     fuse_result = self._feature_forward(support_fused_features, query_fused_features,
-    #                                         support_labels, query_labels,
-    #                                         feature_name='fusion')
-    #     fuse_loss = fuse_result.get('loss')
-    #     fuse_labels = fuse_result.get('predicts')
-    #
-    #     if is_test:
-    #         total_loss = fuse_loss
-    #     else:
-    #         total_loss = fuse_loss + feature_loss
-    #
-    #     return {
-    #         'logits': None,
-    #         'loss': total_loss,         # 返回的损失值是特征损失+融合损失两部分
-    #         'predicts': fuse_labels      # 将fusion之后的predicts作为预测结果
-    #     }
-
     def _feature_forward(self, support_features, query_features,
                          support_labels, query_labels,
                          feature_name='none'):
@@ -256,7 +210,11 @@ class MLossSIMPLE(BaseMultiLossModel):
             protos, radii, cluster_labels = self.delete_empty_clusters(protos, prob_support, radii, cluster_labels)
 
         # 计算query的类簇logits
-        logits = compute_logits_radii(protos, query_features, radii, use_sigma=self.Sigma is not None).squeeze()
+        try:
+            logits = compute_logits_radii(protos, query_features, radii, use_sigma=self.Sigma is not None).squeeze()
+        except Exception as e:
+            print(e)
+            a = 0
 
         # convert class targets into indicators for supports in each class
         labels = query_labels  # batch.y_test.data
@@ -381,7 +339,11 @@ def compute_logits_radii(cluster_centers, data, radii, prior_weight=1, use_sigma
     data = t.unsqueeze(data, 2)  # [B, N, 1, D]
     dim = data.size()[-1]
     radii = t.unsqueeze(radii, 1)  # [B, 1, K]  K=类簇数量
-    neg_dist = -t.sum((data - cluster_centers) ** 2, dim=3)  # [B, N, K]         # 每个样本到每个类簇的欧式距离平方
+    try:
+        neg_dist = -t.sum((data - cluster_centers) ** 2, dim=3)  # [B, N, K]         # 每个样本到每个类簇的欧式距离平方
+    except Exception as e:
+        print(e)
+        raise e
 
     # TODO: 是否使用Sigma
     #*********************************************************************
