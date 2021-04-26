@@ -82,6 +82,14 @@ def _SIMPLE(path_manager: PathManager,
     return SIMPLE(model_params, path_manager, loss_func, data_source).cuda()
 
 
+def _IMP(path_manager: PathManager,
+         model_params: config.ParamsConfig,
+         task_params: config.TaskConfig,
+         loss_func,
+         data_source):
+    return IMP(model_params, path_manager, loss_func, data_source).cuda()
+
+
 def _PostProtoNet(path_manager: PathManager,
                   model_params: config.ParamsConfig,
                   task_params: config.TaskConfig,
@@ -106,14 +114,33 @@ def _MLossSIMPLE(path_manager: PathManager,
     return MLossSIMPLE(model_params, path_manager, loss_func, data_source).cuda()
 
 
+def _MLossIMP(path_manager: PathManager,
+              model_params: config.ParamsConfig,
+              task_params: config.TaskConfig,
+              loss_func,
+              data_source):
+    return MLossIMP(model_params, path_manager, loss_func, data_source).cuda()
+
+
+def _FEAT(path_manager: PathManager,
+          model_params: config.ParamsConfig,
+          task_params: config.TaskConfig,
+          loss_func,
+          data_source):
+    return FEAT(model_params, path_manager, loss_func, data_source).cuda()
+
+
 ModelSwitch = {
     'ProtoNet': _ProtoNet,
     'NnNet': _NnNet,
     'HAPNet': _HAPNet,
     'SIMPLE': _SIMPLE,
+    'IMP': _IMP,
+    'FEAT': _FEAT,
 
     'PostProtoNet': _PostProtoNet,
 
     'MLossProtoNet': _MLossProtoNet,
     "MLossSIMPLE": _MLossSIMPLE,
+    'MLossIMP': _MLossIMP,
 }

@@ -7,7 +7,7 @@ import config
 from utils.manager import PathManager
 
 
-class SIMPLE(BaseEmbedModel):
+class IMP(BaseEmbedModel):
 
     def __init__(self,
                  model_params: config.ParamsConfig,
@@ -25,6 +25,8 @@ class SIMPLE(BaseEmbedModel):
 
         self.Clusters = None
         self.ClusterLabels = None
+
+        self.Dim = self.FusedFeatureDim
 
     def _add_cluster(self, nClusters, protos, radii, cluster_type='unlabeled', ex=None):
         """
@@ -183,7 +185,7 @@ class SIMPLE(BaseEmbedModel):
         protos = self._compute_protos(support_fused_features, prob_support)
 
         # estimate lamda
-        # lamda = self.estimate_lambda(protos.data, False)
+        lamda = self.estimate_lambda(protos.data, False)
 
         # loop for a given number of clustering steps
         for ii in range(self.NumClusterSteps):
@@ -195,13 +197,13 @@ class SIMPLE(BaseEmbedModel):
 
                 #****************************************************************************
                 # 计算与标签对应的类簇的距离(由于其他不对应的类簇的距离都是正无穷，求min时直接可忽略)
-                # distances = self._compute_distances(protos[:, idxs, :], ex.data)
-                # if t.min(distances) > lamda:
+                distances = self._compute_distances(protos[:, idxs, :], ex.data)
+                if t.min(distances) > lamda:
                 #****************************************************************************
 
-                distances = self._compute_distances(protos,ex)
-                # 如果发现离自己最近的cluster不是自己的类的cluster，就直接增加一个cluster
-                if not t.any(t.min(distances,dim=1).indices==idxs).item():
+                # distances = self._compute_distances(protos,ex)
+                # # 如果发现离自己最近的cluster不是自己的类的cluster，就直接增加一个cluster
+                # if not t.any(t.min(distances,dim=1).indices==idxs).item():
 
                     nClusters, protos, radii = self._add_cluster(nClusters, protos, radii,
                                                                  cluster_type='labeled', ex=ex.data)
