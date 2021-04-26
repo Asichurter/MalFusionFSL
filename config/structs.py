@@ -114,9 +114,13 @@ class TestConfig:
 
         # 额外添加一个last/best模型使用说明
         desc.append(f'{self.LoadType} used')
+
+        # 额外添加一个测试数据子集说明
         if self.Subset != 'test':
-            # 额外添加一个测试数据子集说明
             desc.append(f'{self.Subset} set used')
 
-        # ...
+        # 额外添加任务信息
+        task_info = f"{self.Task.Episode.k}-shot {self.Task.Episode.n}-way"
+        desc.append(task_info)
+
         return desc

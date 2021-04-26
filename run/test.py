@@ -77,6 +77,8 @@ for epoch in epoch_range:
         metrics = test_task.metrics(outs['predicts'],
                                     is_labels=True,
                                     metrics=config.test.Metrics)
+    else:
+        raise ValueError("[test] 'logits' or 'predicts' must be either given in returned dict of model")
 
     stat.recordTest(metrics, loss_val.detach().item())
 
