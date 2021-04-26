@@ -79,10 +79,11 @@ class MLossProtoNet(BaseMultiLossModel):
         with torch.no_grad():
             return self.forward(is_test=True, *args, **kwargs)
 
-    def _feature_forward(self, support_features, query_features, query_labels,
-                         feature_name, **kwargs):
+    def _feature_forward(self, support_features, query_features,
+                         support_labels, query_labels,
+                         feature_name='none') -> dict:
         assert support_features is not None, f"[MLossProtoNet] {feature_name} is None, " \
-                                             f"which is not allowed in posterior fusion models"
+                                             f"which is not allowed in multi-loss fusion models"
 
         k, n, qk = self.TaskParams.k, self.TaskParams.n, self.TaskParams.qk
         dim = support_features.size(1)
