@@ -36,31 +36,6 @@ class FEAT(BaseEmbedModel):
                 query_seqs, query_imgs, query_lens, query_labels,
                 epoch=None, metric='euc', return_embeddings=False):
 
-        # if self.DataParallel:
-        #     support_fused_features = support_fused_features.squeeze(0)
-        #     sup_len = sup_len[0]
-        #
-        # n, k, qk, sup_seq_len, que_seq_len = extractTaskStructFromInput(support_fused_features, query_fused_features)
-        #
-        # qk_per_class = qk // n
-        #
-        # # 提取了任务结构后，将所有样本展平为一个批次
-        # support_fused_features = support_fused_features.view(n*k, sup_seq_len)
-        #
-        # # ------------------------------------------------------
-        # support_fused_features, query_fused_features = self._embed(support_fused_features, sup_len), \
-        #                  self._embed(query_fused_features, que_len)
-        # # ------------------------------------------------------
-        #
-        # # support = self.Encoder(support, sup_len)
-        # # query = self.Encoder(query, que_len)
-        #
-        # assert support_fused_features.size(1)==query_fused_features.size(1), '支持集维度 %d 和查询集维度 %d 必须相同!'%\
-        #                                        (support_fused_features.size(1),query_fused_features.size(1))
-        #
-        # dim = support_fused_features.size(1)
-        # ----------------------------------------------------------------------------
-
         embedded_support_seqs, embedded_query_seqs, \
         embedded_support_imgs, embedded_query_imgs = self.embed(support_seqs, query_seqs,
                                                                 support_lens, query_lens,

@@ -18,7 +18,8 @@ def buildModel(path_manager: PathManager,
         task_config = config.task
 
     try:
-        model = ModelSwitch[model_params.ModelName](path_manager, model_params, task_config, loss_func, data_source)
+        model = ModelSwitch[model_params.ModelName](path_manager, model_params, task_config, loss_func, data_source)\
+                .cuda()
     except KeyError:
         raise ValueError("[ModelBuilder] No matched model implementation for '%s'"
                          % model_params.ModelName)
@@ -55,7 +56,7 @@ def _ProtoNet(path_manager: PathManager,
               task_params: config.TaskConfig,
               loss_func,
               data_source):
-    return ProtoNet(model_params, path_manager, loss_func, data_source).cuda()
+    return ProtoNet(model_params, path_manager, loss_func, data_source)
 
 
 def _NnNet(path_manager: PathManager,
@@ -63,7 +64,7 @@ def _NnNet(path_manager: PathManager,
            task_params: config.TaskConfig,
            loss_func,
            data_source):
-    return NnNet(model_params, path_manager, loss_func, data_source).cuda()
+    return NnNet(model_params, path_manager, loss_func, data_source)
 
 
 def _HAPNet(path_manager: PathManager,
@@ -71,7 +72,7 @@ def _HAPNet(path_manager: PathManager,
             task_params: config.TaskConfig,
             loss_func,
             data_source):
-    return HAPNet(model_params, path_manager, loss_func, data_source, task_params.Episode.k).cuda()
+    return HAPNet(model_params, path_manager, loss_func, data_source, task_params.Episode.k)
 
 
 def _SIMPLE(path_manager: PathManager,
@@ -79,7 +80,7 @@ def _SIMPLE(path_manager: PathManager,
             task_params: config.TaskConfig,
             loss_func,
             data_source):
-    return SIMPLE(model_params, path_manager, loss_func, data_source).cuda()
+    return SIMPLE(model_params, path_manager, loss_func, data_source)
 
 
 def _IMP(path_manager: PathManager,
@@ -87,7 +88,7 @@ def _IMP(path_manager: PathManager,
          task_params: config.TaskConfig,
          loss_func,
          data_source):
-    return IMP(model_params, path_manager, loss_func, data_source).cuda()
+    return IMP(model_params, path_manager, loss_func, data_source)
 
 
 def _PostProtoNet(path_manager: PathManager,
@@ -95,7 +96,7 @@ def _PostProtoNet(path_manager: PathManager,
                   task_params: config.TaskConfig,
                   loss_func,
                   data_source):
-    return PostProtoNet(model_params, path_manager, loss_func, data_source).cuda()
+    return PostProtoNet(model_params, path_manager, loss_func, data_source)
 
 
 def _MLossProtoNet(path_manager: PathManager,
@@ -103,7 +104,7 @@ def _MLossProtoNet(path_manager: PathManager,
                    task_params: config.TaskConfig,
                    loss_func,
                    data_source):
-    return MLossProtoNet(model_params, path_manager, loss_func, data_source).cuda()
+    return MLossProtoNet(model_params, path_manager, loss_func, data_source)
 
 
 def _MLossSIMPLE(path_manager: PathManager,
@@ -111,7 +112,7 @@ def _MLossSIMPLE(path_manager: PathManager,
                  task_params: config.TaskConfig,
                  loss_func,
                  data_source):
-    return MLossSIMPLE(model_params, path_manager, loss_func, data_source).cuda()
+    return MLossSIMPLE(model_params, path_manager, loss_func, data_source)
 
 
 def _MLossIMP(path_manager: PathManager,
@@ -119,7 +120,7 @@ def _MLossIMP(path_manager: PathManager,
               task_params: config.TaskConfig,
               loss_func,
               data_source):
-    return MLossIMP(model_params, path_manager, loss_func, data_source).cuda()
+    return MLossIMP(model_params, path_manager, loss_func, data_source)
 
 
 def _FEAT(path_manager: PathManager,
@@ -127,7 +128,23 @@ def _FEAT(path_manager: PathManager,
           task_params: config.TaskConfig,
           loss_func,
           data_source):
-    return FEAT(model_params, path_manager, loss_func, data_source).cuda()
+    return FEAT(model_params, path_manager, loss_func, data_source)
+
+
+def _ConvProtoNet(path_manager: PathManager,
+                  model_params: config.ParamsConfig,
+                  task_params: config.TaskConfig,
+                  loss_func,
+                  data_source):
+    return ConvProtoNet(model_params, path_manager, loss_func, data_source, task_params.Episode.k)
+
+
+def _InductionNet(path_manager: PathManager,
+                  model_params: config.ParamsConfig,
+                  task_params: config.TaskConfig,
+                  loss_func,
+                  data_source):
+    return InductionNet(model_params, path_manager, loss_func, data_source)
 
 
 ModelSwitch = {
@@ -137,6 +154,8 @@ ModelSwitch = {
     'SIMPLE': _SIMPLE,
     'IMP': _IMP,
     'FEAT': _FEAT,
+    'ConvProtoNet': _ConvProtoNet,
+    'InductionNet': _InductionNet,
 
     'PostProtoNet': _PostProtoNet,
 
