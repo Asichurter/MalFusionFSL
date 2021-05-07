@@ -92,3 +92,7 @@
     - seq_length：API数据截断前的真实长度，用于RNN的pack和unpack，或者注意力中的mask
   - validate文件夹：包含验证集打包好的数据，结构与训练集中同理
   - test文件夹：包含测试集打包好的数据，结构与训练集中同理
+
+## 模型说明
+模型整体结构的运行流程结构如下所示（运行一个episode）：
+![](files/classification_workflow.jpg)
