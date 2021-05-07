@@ -37,7 +37,7 @@ class FeatureAttention(nn.Module):
         attention_channels = [1, 32, 64, 1]
         attention_strides = [(1, 1), (1, 1), (k, 1)]
         attention_kernels = [(k, 1), (k, 1), (k, 1)]
-        attention_relus = ['relu', 'relu', 'relu']
+        attention_relus = ['leaky', 'leaky', 'leaky']
 
         self.Layers = nn.Sequential(
             *[CNNBlock2D(attention_channels[i],

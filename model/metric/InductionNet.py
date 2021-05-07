@@ -15,12 +15,16 @@ class InductionNet(BaseEmbedModel):
                  path_manager: PathManager,
                  loss_func,
                  data_source,
-                 ntn_hidden_size=128):
+                 ntn_hidden_size=32,
+                 dynamic_routing_iter=3):
         super(InductionNet, self).__init__(model_params, path_manager, loss_func, data_source)
 
+        self.Transformer = nn.Linear(self.FusedFeatureDim, self.FusedFeatureDim)
         self.NTN = NTN(self.FusedFeatureDim,
                        self.FusedFeatureDim,
                        ntn_hidden_size)
+
+        self.DynamicRoutingIter = dynamic_routing_iter
 
     def forward(self,  # forward接受所有可能用到的参数
                 support_seqs, support_imgs, support_lens, support_labels,
@@ -42,11 +46,13 @@ class InductionNet(BaseEmbedModel):
         query_fused_features = self._fuse(embedded_query_seqs, embedded_query_imgs, fuse_dim=1)
         dim = support_fused_features.size(1)
 
+        support_fused_features = support_fused_features.view(n, k, dim)
+
         # coupling shape: [n, d]
         coupling = t.zeros_like(support_fused_features).sum(dim=2)
         proto = None
         # 使用动态路由来计算原型向量
-        for i in range(self.Iters):
+        for i in range(self.DynamicRoutingIter):
             coupling, proto = dynamicRouting(self.Transformer,
                                              support_fused_features, coupling,
                                              k)
@@ -54,7 +60,12 @@ class InductionNet(BaseEmbedModel):
         support_fused_features = repeatProtoToCompShape(proto, qk, n)
         query_fused_features = repeatQueryToCompShape(query_fused_features, qk, n)
 
-        return self.NTN(support_fused_features, query_fused_features, n).view(qk, n)
+        logits = self.NTN(support_fused_features, query_fused_features).view(qk, n)
+        return {
+            "logits": logits,
+            "loss": self.LossFunc(logits, query_labels),
+            "predict": None
+        }
 
     def test(self, *args, **kwargs):
         with t.no_grad():
