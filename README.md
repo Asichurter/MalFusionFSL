@@ -95,4 +95,4 @@
 
 ## 模型说明
 模型整体结构的运行流程结构如下所示（运行一个episode）：
-![](files/classification_workflow.jpg)
+![](files/classification_workflow_cut.png)
