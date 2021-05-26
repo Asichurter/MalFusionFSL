@@ -99,10 +99,13 @@
 ### 序列数据处理
 具体方法可以见最上方的基于API序列的参考文献。所有序列数据由[Cuckoo沙箱](https://cuckoosandbox.org/)运行恶意代码二进制文件后得到。Cuckoo沙箱在运行二进制文件后，会自动生成一个运行报告，其中只留下API调用的名称组装成一个序列，丢弃其他所有特征，存储为一个JSON文件。注意，太短的运行序列（例如长度小于10）的样本需要被弃用，因为太短的序列没有包含太多有意义的信息，通常意味着运行失败。处理流程大致如下：
 
-1. 移除API序列中重复调用超过2次造成的冗余子序列，只保留最多2次调用，可参考代码中 *preprocessing/normalization.py/removeAPIRedundancy*的实现。该操作会覆盖掉原序列文件中的数据，注意备份
-2. 提取序列的N-Gram（实验中N=3）序列并统计各个N-Gram子序列的频率，只保留top-l（实验中l=5000）的N-Gram子序列。同时为了防止因为生成的N-Gram的名称过长，将每一个保留的N-Gram项映射为一个int值，最后利用top-l的N-Gram序列int映射值替换原API序列。可参考代码中 *preprocessing/ngram.py/statNGramFrequency,mapAndExtractTopKNgram*的实现，前者主要是统计N-Gram频率并生成频率排序字典，后者完成实际的映射工作，本操作也是一个in-place操作，会覆盖源数据
-3. 对于每一个标注的恶意代码家族，从每一个家族中采样一个固定数量的样本（实验中是20）来组成数据集，放置到上一节中介绍的数据集结构中的*all/api/*中，文件夹名称就为家族名称。可参见代码中 *preprocessing/dataset/sample.py/sampleClassWiseData*的实现
-4. 对所有提取的序列数据运行GloVe算法来生成序列元素的词嵌入矩阵，可参见代码中 *utils/GloVe.py*中的实现，主要使用了glove-python库。生成的词嵌入矩阵向量存储为NumPy的NdArray类型，放置在 *data/matrix.npy*;”序列元素->矩阵下标值映射“存储为JSON类型，放置在*data/wordMap.json*下
+1. 移除API序列中重复调用超过2次造成的冗余子序列，只保留最多2次调用，可参考代码中 [preprocessing/normalization.py/removeAPIRedundancy](https://github.com/Asichurter/MalFusionFSL/blob/ec2f557ae8e896d1ecb4ea49920d8ec68ffbd6da/preprocessing/normalization.py#L5)
+的实现。该操作会覆盖掉原序列文件中的数据，注意备份
+3. 提取序列的N-Gram（实验中N=3）序列并统计各个N-Gram子序列的频率，只保留top-l（实验中l=5000）的N-Gram子序列。同时为了防止因为生成的N-Gram的名称过长，将每一个保留的N-Gram项映射为一个int值，最后利用top-l的N-Gram序列int映射值替换原API序列。可参考代码中 [preprocessing/ngram.py/statNGramFrequency,mapAndExtractTopKNgram](https://github.com/Asichurter/MalFusionFSL/blob/ec2f557ae8e896d1ecb4ea49920d8ec68ffbd6da/preprocessing/ngram.py#L6)
+的实现，前者主要是统计N-Gram频率并生成频率排序字典，后者完成实际的映射工作，本操作也是一个in-place操作，会覆盖源数据
+4. 对于每一个标注的恶意代码家族，从每一个家族中采样一个固定数量的样本（实验中是20）来组成数据集，放置到上一节中介绍的数据集结构中的*all/api/*中，文件夹名称就为家族名称。可参见代码中 [preprocessing/dataset/sample.py/sampleClassWiseData](https://github.com/Asichurter/MalFusionFSL/blob/ec2f557ae8e896d1ecb4ea49920d8ec68ffbd6da/preprocessing/dataset/sample.py#L12)
+的实现
+5. 对所有提取的序列数据运行GloVe算法来生成序列元素的词嵌入矩阵，可参见代码中 [utils/GloVe.py](https://github.com/Asichurter/MalFusionFSL/blob/main/utils/GloVe.py)中的实现，主要使用了glove-python库。生成的词嵌入矩阵向量存储为NumPy的NdArray类型，放置在 *data/matrix.npy*;”序列元素->矩阵下标值映射“存储为JSON类型，放置在*data/wordMap.json*下
 
 ### 图像数据处理
 具体方法可以参考最上方的基于恶意代码灰度图的参考文献。主要是利用16进制读取二进制文件后，按顺序将每一个字节值（2个十六进制数）转换为一个0-255的灰度值，整个字节序列就转换为灰度值序列。然后将灰度值序列按照最大的平方值进行截断，转换为一个2D的正方形图像，最后上采样/下采样至一个指定大小的图像（实验中是256×256）。处理好的图像数据保存在上一节中介绍的 *all/img/*中。可参考代码中 *preprocessing/image.py*的实现。
@@ -110,7 +113,7 @@
 ![](files/malware_image_conversion.jpg)
 
 ### 数据集分割
-由于元学习的特殊性，数据集分割需要将恶意代码家族（类）分割，而不是类中的样本。分割前所有恶意代码家族都位于 *all*文件夹中，分割时需要把整个家族的数据移动到train，validate或者test文件夹中，而且需要同时将API序列数据和恶意代码灰度图数据对应分割移动。具体的代码实现可以参考 *preprocessing/dataset/split.py/splitDataset*。分割后，训练集的所有数据位于 *train*文件夹中，验证集和测试集分别位于 *validate*和*test*文件夹中
+由于元学习的特殊性，数据集分割需要将恶意代码家族（类）分割，而不是类中的样本。分割前所有恶意代码家族都位于 *all*文件夹中，分割时需要把整个家族的数据移动到train，validate或者test文件夹中，而且需要同时将API序列数据和恶意代码灰度图数据对应分割移动。具体的代码实现可以参考 [preprocessing/dataset/split.py/splitDataset](https://github.com/Asichurter/MalFusionFSL/blob/main/preprocessing/dataset/split.py)。分割后，训练集的所有数据位于 *train*文件夹中，验证集和测试集分别位于 *validate*和*test*文件夹中
 
 ### 数据打包
 为了减少因为文件IO造成的处理延时增加，在训练/测试之前都先将所需数据一次性读入内存中，因此需要将数据打包以方便读取。打包时按照数据子集为单位（train，validate，test）为单位，每一个子集采用相同的打包方式，数据分别存储在数据集中 *data*目录下不同子集的文件夹中。
@@ -136,22 +139,152 @@
 
 ![](files/classification_workflow_cut.PNG)
 
-### 基础模型
-基础模型包含所有模型都需要的一些基础能力，还声明了一些所有模型都需要的数据，例如损失函数，数据源，特征融合输出维度等。基础模型的代码实现参见 *model/common/base_model.py/BaseModel*
+### 基础模型 BaseModel
+基础模型包含所有模型都需要的一些基础能力，还声明了一些所有模型都需要的数据，例如损失函数，数据源，特征融合输出维度等。基础模型的代码实现参见 [model/common/base_model.py/BaseModel](https://github.com/Asichurter/MalFusionFSL/blob/main/model/common/base_model.py)
 
 基础模型包含的功能包括：
-- 解析数据中的Episode任务参数（K，C，N等），
+- 解析数据中的Episode任务参数（K，C，N等）
+``` python
+    def _extractEpisodeTaskStruct(self,
+                                  support_seqs, query_seqs,
+                                  support_imgs, query_imgs):
+        if support_seqs is not None:
+            k = support_seqs.size(1)
+            n = support_seqs.size(0)
+        elif support_imgs is not None:
+            k = support_imgs.size(1)
+            n = support_imgs.size(0)
+        else:
+            assert False, "[extractEpisodeTaskStruct] 序列和图像的支持集都为None，无法提取n,k"
+    # ...
+```
 - 调用嵌入结构嵌入序列和图像嵌入结构来嵌入输入数据，主要是按次序调用SeqEmbedPipeline和ImgEmbedPipeline，因此后续模型嵌入具体实现需要将组建放入这两个列表中
+```python
+    def embed(self,
+              support_seqs, query_seqs,
+              support_lens, query_lens,
+              support_imgs, query_imgs):
+        self._extractEpisodeTaskStruct(support_seqs, query_seqs,
+                                       support_imgs, query_imgs)
+        k, n, qk, w = self.TaskParams.k, self.TaskParams.n, self.TaskParams.qk, self.ImageW
 
-### 嵌入模型
-嵌入模型继承了基础模型BaseModel，主要增加了模型需要的数据嵌入功能，能够根据配置参数来调整模型的实际使用子结构和超参数。嵌入模型的代码实现见 *model/common/base_embed_model.py/BaseEmbedModel*
+        if support_seqs is not None:
+            support_seqs = support_seqs.view(n * k, -1)
+            support_seqs = self._seqEmbed(support_seqs, support_lens) 
+            query_seqs = self._seqEmbed(query_seqs, query_lens)
+            
+        if support_imgs is not None:
+            support_imgs = support_imgs.view(n*k, 1, w, w)
+            support_imgs = self._imgEmbed(support_imgs)    
+            query_imgs = self._imgEmbed(query_imgs).squeeze()
+
+        return support_seqs, query_seqs, support_imgs, query_imgs
+```
+
+### 嵌入模型 BaseEmbedModel
+嵌入模型继承了基础模型BaseModel，主要增加了模型需要的数据嵌入功能，能够根据配置参数来调整模型的实际使用子结构和超参数。嵌入模型的代码实现见 [model/common/base_embed_model.py/BaseEmbedModel](https://github.com/Asichurter/MalFusionFSL/blob/main/model/common/base_embed_model.py)
 
 嵌入模型的包含的功能包括：
-- 根据数据源配置嵌入结构：如果数据源中不包括序列数据，则在初始化嵌入结构时不会初始化序列数据的嵌入结构，以减少显存开销。数据源的配置可以在训练参数配置文件 *config/train.json*中的“training | data_source"中设置
-- 设置词嵌入初始化的使用：可以选择使用或者不使用词嵌入，在“model | embedding"中设置
-- 设置序列嵌入结构和其超参数：在"model | sequence_backbone"中调整序列嵌入的参数，默认使用**LSTM+时序卷积最大池化**作为序列嵌入结构，可以通过该参数下的"type"子参数来调整其他结构（需要在BaseEmbedModel中实现）。序列长度通过参数下的"max_seq_len"来调整。其他参数，例如LSTM类型的参数，包括在了该参数下的"LSTM“子项，包括双向LSTM，隐藏层维度，LSTM层数等。如果需要实现新的模型，则参数可以自定义调整，只需要在BaseEmbedModel中自行判断读取即可
-- 设置图像嵌入结构和其超参数：在“model | conv_backbone"中调整图像嵌入的参数，默认使用**Conv-4**结构作为图像嵌入结构，可以通过该参数下的“type"子参数来调整为其他结构，目前已实现的还有resnet18和resnet34，其他结构可以自行在BaseEmbedModel中判断并添加即可。Conv-4内的参数，包括是否使用global_pooling来将 *batch,channel,dimension* 形式的图像特征约减为一个特征向量，每一个卷积层的通道数量，卷积步幅stride，填充padding，是否使用非线性激活等，都包含在子参数“params | conv-n"中，如果需要自行实现新的模型和其参数，则在"params"下新加一个子参数项，然后在BaseEmbedModel初始化时自行读取即可
+- 根据数据源配置嵌入结构：如果数据源中不包括序列数据，则在初始化嵌入结构时不会初始化序列数据的嵌入结构，以减少显存开销。数据源的配置可以在训练参数配置文件 *config/train.json*中的**training | data_source**中设置
+``` JSON
+{
+      "training": {
+        "data_source": [
+            "sequence",
+            "image"
+        ]
+    }
+}
+```
+- 设置词嵌入初始化的使用：可以选择使用或者不使用词嵌入，在**model | embedding**中设置
+```JSON
+{
+  "model": {
+    "embedding": {
+      "use_pretrained": true,
+      "embed_size": 300,
+      "word_count": null
+    },
+  }
+}
+```
+- 设置序列嵌入结构和其超参数：在**model | sequence_backbone**中调整序列嵌入的参数，默认使用**LSTM+时序卷积最大池化**作为序列嵌入结构。
+```JSON
+{
+  "model": {
+    "sequence_backbone": {
+      "seq_type": "LSTM",
+      "max_seq_len": 300,
+      "LSTM": {
+          "bidirectional": true,
+          "hidden_size": 128,
+          "layer_num": 1,
+          "dropout": 0.5,
+          "modules": {
+              "self_attention": {
+                  "enabled": false,
+                  "type": "custom",
+                  "params": {
+                      "self_att_dim": null,
+                      "multi_head_att_head_num": 4
+                  }
+              },
+              "temporal_conv": {
+                  "enabled": true,
+                  "params": {
+                      "kernel_sizes": [3],
+                      "paddings": [1],
+                      "relus": [true],
+                      "pools": ["ada"],
+                      "bn": [true]
+                  }
+              }
+          }
+      }
+  }
+}
+```
+可以通过该参数下的"type"子参数来调整其他结构（需要在BaseEmbedModel中实现）。序列长度通过参数下的**max_seq_len**来调整。其他参数，例如LSTM类型的参数，包括在了该参数下的"LSTM"子项，包括双向LSTM，隐藏层维度，LSTM层数等。如果需要实现新的模型，则参数可以自定义调整，只需要在BaseEmbedModel中自行判断读取即可，默认图像嵌入结构示意图如下所示
+![](files/sequence_embedding_architecture.jpg)
+- 设置图像嵌入结构和其超参数：在**model | conv_backbone**中调整图像嵌入的参数，默认使用**Conv-4**结构作为图像嵌入结构。
+```JSON
+{
+  "model": {
+            "conv_backbone": {
+            "type": "conv-4",
+            "params": {
+                "conv-n": {
+                    "global_pooling": true,
+                    "global_pooling_type": "max",
+                    "input_size": 224,
+                    "out_type": "patch",
+                    "channels": [1,32,64,128,256],
+                    "kernel_sizes": [3,3,3,3],
+                    "padding_sizes": [1,1,1,1],
+                    "strides": [2,1,1,1],
+                    "nonlinears": [true,true,true,true]
+                }
+            }
+        }
+  }
+}
+```
+可以通过该参数下的“type"子参数来调整为其他结构，目前已实现的还有resnet18和resnet34，其他结构可以自行在BaseEmbedModel中判断并添加即可。Conv-4内的参数，包括是否使用global_pooling来将 *batch,channel,dimension* 形式的图像特征约减为一个特征向量，每一个卷积层的通道数量，卷积步幅stride，填充padding，是否使用非线性激活等，都包含在子参数**params | conv-n**中，如果需要自行实现新的模型和其参数，则在"params"下新加一个子参数项，然后在BaseEmbedModel初始化时自行读取即可。整个Conv-4图像嵌入结构如下所示:
+![](files/img_embedding_architecture.jpg)
 - 将序列嵌入和图像嵌入流程放入嵌入管道：按顺序将序列数据的嵌入子结构放入SeqEmbedPipeline中，将图像数据的嵌入子结构放入ImgEmbedPipeline中。例如，典型的一个序列嵌入管道为: self.Embedding -> self.EmbedDrop -> self.SeqEncoder -> self.SeqTrans
-- 设置重投影模块：在序列和图像数据嵌入后分别使用两个线性层，重投影两部分特征到一个共同的维度上，可以用于统一两个特征的维度，也可以用于两个特征空间的重组
-- 初始化特征融合模块：根据参数中的"model | fusion | type"初始化对应的特征融合模块。主要调用了buildFusion接口，见 *builder/fusion_builder.py/buildFusion*
+- 设置重投影模块：在序列和图像数据嵌入后分别使用两个线性层，重投影两部分特征到一个共同的维度上，可以用于统一两个特征的维度，也可以用于两个特征空间的重组。重投影的参数设置如下：
+```JSON
+{
+  "model": {
+    "reproject": {
+        "enabled": false,
+        "params": {
+            "out_dim": 256,
+            "non_linear": "relu"
+        }
+    }
+  }
+}
+```
+- 初始化特征融合模块：根据参数中的**model | fusion | type**初始化对应的特征融合模块。主要调用了buildFusion接口，见 [builder/fusion_builder.py/buildFusion](https://github.com/Asichurter/MalFusionFSL/blob/main/builder/fusion_builder.py)
 
