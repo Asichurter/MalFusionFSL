@@ -1,4 +1,6 @@
 # MalFusionFSL
+(For an English version of README can turn to [README_en](https://github.com/Asichurter/MalFusionFSL/blob/main/README_en.md) (under construction))
+
 基于静态/动态分析特征融合的小样本恶意代码分类框架(few-shot malware classification based on fused analysis features)的研究代码。
 包含所有数据集处理，元学习任务级封装，提出模型和基线模型的细节实现，训练/测试的运行代码等。本项目的特点包括：
 
