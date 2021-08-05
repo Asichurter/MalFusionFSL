@@ -134,11 +134,11 @@
 为了保证恶意代码家族的具体的可追溯性，在每一个子集打包时，每一个恶意代码家族在打包矩阵中的下标存储为 *idx_mapping.json*，放置在对应的子集文件夹下
 
 ## 参数说明
-通过配置config/train.json和config/test.json可以灵活地控制训练和测试过程中的各种参数细节，例如使用的数据集，多模态混合类型，嵌入backbone的隐藏层维度和层数，训练epoch，优化器和学习率调度器等等。每运行一次训练，训练的参数配置train.json将会保存至对应数据集doc文件夹中对应version的文件夹中，保证后续复盘时了解训练的详细配置。
+通过配置 *config/train.json* 和 *config/test.json* 可以灵活地控制训练和测试过程中的各种参数细节，例如使用的数据集，多模态混合类型，嵌入backbone的隐藏层维度和层数，训练epoch，优化器和学习率调度器等等。每运行一次训练，训练的参数配置train.json将会保存至对应数据集doc文件夹中对应version的文件夹中，保证后续复盘时了解训练的详细配置。
 
 ### 训练过程配置
 - **配置使用的数据集和数据源**
-  - *"task | dataset"*：训练/测试使用的数据集
+  - *"task | dataset"*：训练/测试使用的数据集,同名数据集文件夹必须出现在 *config/env.json/platform-node* 对应的 *DatasetBasePath* 路径下
   - *"training | data_source"*: list类型，指定训练/测试使用的数据源，合法值包括："sequence","image"
   - *"model | fusion | type"*: 如果只使用sequence或者image数据源的其中一个，即非混合分析，需要将混合类型指定为对应的sequence或者image
 - **配置使用的模型**
@@ -225,10 +225,10 @@
     - *"word_count"*: 如果不使用预训练好的词嵌入初始化，而使用随机初始化的词的总数量。使用预训练时可以忽略该参数
 
 ### 测试参数配置
-与训练中含义相同的配置项，例如*"task | k/n/qk"*,*"task | dataset"* 等不再敷述，只介绍train.json中没有的参数项
+与训练中含义相同的配置项，例如 *"task | k/n/qk"*,*"task | dataset"*  等不再敷述，只介绍train.json中没有的参数项
 - *"test_epoch"*: 测试周期数
 - *"report_iter"*: 测试运行时每经过多少轮会报告当前结果在控制台
-- *"data_source"*: 同train.json里面的*"training | data_source"* ，但是可以指定为null来默认使用对应版本的训练时数据源
+- *"data_source"*: 同train.json里面的 *"training | data_source"* ，但是可以指定为null来默认使用对应版本的训练时数据源
 - *"load_type"*: 要测试的模型类型，是最好验证效果模型（对应"best"）还是最终模型训练完成以后保存的模型（对应"last"）
 - *"verbose"*: 是否打印结果在控制台
 - *"fine-tuning"*: 微调用参数，目前尚未使用     
