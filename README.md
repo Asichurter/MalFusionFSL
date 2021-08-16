@@ -13,8 +13,8 @@
 - **自动化任务运行支持**：支持使用自动执行机来流水线施添加预定运行任务，使得模型训练测试可以自动无人值守时完成
 
 本项目中用到的动静态数据的简介如下：
-- 静态分析数据：恶意程序二进制转灰度图，见: <br/>_Tang, Z.; Wang, P.; Wang, J. ConvProtoNet: Deep Prototype Induction towards Better Class Representation for Few-Shot Malware Classification. Appl. Sci. 2020, 10, 2847. https://doi.org/10.3390/app10082847_
-- 动态分析数据：Cuckoo沙箱运行恶意程序二进制文件获取的API调用序列，见：<br/> _Wang, Peng, Zhijie Tang, and Junfeng Wang. "A Novel Few-Shot Malware Classification Approach for Unknown Family Recognition with Multi-Prototype Modeling." Computers & Security (2021): 102273. https://doi.org/10.1016/j.cose.2021.102273_
+- 静态分析数据：恶意程序二进制转灰度图，见: <br/>_Tang, Z.; Wang, P.; Wang, J. ConvProtoNet: Deep Prototype Induction towards Better Class Representation for Few-Shot Malware Classification. Appl. Sci. 2020, 10, 2847. https://doi.org/10.3390/app10082847_   数据集地址：https://drive.google.com/file/d/11XKYjyG0h54Du07bRk7r4aFhYyF4tcCb/view?usp=sharing
+- 动态分析数据：Cuckoo沙箱运行恶意程序二进制文件获取的API调用序列，见：<br/> _Wang, Peng, Zhijie Tang, and Junfeng Wang. "A Novel Few-Shot Malware Classification Approach for Unknown Family Recognition with Multi-Prototype Modeling." Computers & Security (2021): 102273. https://doi.org/10.1016/j.cose.2021.102273_  数据集地址：https://drive.google.com/file/d/1KU3nkn-5l6q5ntQ7-hHbOOsbgF9VSAXq/view?usp=sharing
 
 ## 运行环境
 ### 硬件环境
@@ -136,12 +136,12 @@
 为了保证恶意代码家族的具体的可追溯性，在每一个子集打包时，每一个恶意代码家族在打包矩阵中的下标存储为 *idx_mapping.json*，放置在对应的子集文件夹下
 
 ## 参数说明
-通过配置 *config/train.json* 和 *config/test.json* 可以灵活地控制训练和测试过程中的各种参数细节，例如使用的数据集，多模态混合类型，嵌入backbone的隐藏层维度和层数，训练epoch，优化器和学习率调度器等等。每运行一次训练，训练的参数配置train.json将会保存至对应数据集doc文件夹中对应version的文件夹中，保证后续复盘时了解训练的详细配置。
+通过配置 *config/train.json* 和 *config/test.json* 可以灵活地控制训练和测试过程中的各种参数细节，例如使用的数据集，多模态混合类型，嵌入backbone的隐藏层维度和层数，训练epoch，优化器和学习率调度器等等。运行时模型将会完全从配置文件中读取配置参数（而不会接受任何的命令行参数）来进行运行配置。每运行一次训练，训练的参数配置train.json将会保存至对应数据集doc文件夹中对应version的文件夹中，保证后续复盘时了解训练的详细配置。
 
 ### 训练过程配置
-- **配置使用的数据集和数据源**
+- **配置使用的数据集和数据源，或只启用静态/动态分析**
   - *"task | dataset"*：训练/测试使用的数据集,同名数据集文件夹必须出现在 *config/env.json/platform-node* 对应的 *DatasetBasePath* 路径下
-  - *"training | data_source"*: list类型，指定训练/测试使用的数据源，合法值包括："sequence","image"
+  - *"training | data_source"*: list类型，指定训练/测试使用的数据源，合法值包括："sequence"(启用基于API序列的动态分析，读取data下的api.npy,seq_length.json等),"image"(启用静态分析，读取data下的img.npy)，也可以同时指定两者来启用混合分析
   - *"model | fusion | type"*: 如果只使用sequence或者image数据源的其中一个，即非混合分析，需要将混合类型指定为对应的sequence或者image
 - **配置使用的模型**
   - *"model | model_name"*: 模型的名称，需要注册在builder中，详见[builder/model_builder.py](https://github.com/Asichurter/MalFusionFSL/blob/main/builder/model_builder.py)
