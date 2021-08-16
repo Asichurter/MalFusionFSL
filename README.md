@@ -13,8 +13,10 @@
 - **自动化任务运行支持**：支持使用自动执行机来流水线施添加预定运行任务，使得模型训练测试可以自动无人值守时完成
 
 本项目中用到的动静态数据的简介如下：
-- 静态分析数据：恶意程序二进制转灰度图，见: <br/>_Tang, Z.; Wang, P.; Wang, J. ConvProtoNet: Deep Prototype Induction towards Better Class Representation for Few-Shot Malware Classification. Appl. Sci. 2020, 10, 2847. https://doi.org/10.3390/app10082847_   数据集地址：https://drive.google.com/file/d/11XKYjyG0h54Du07bRk7r4aFhYyF4tcCb/view?usp=sharing
-- 动态分析数据：Cuckoo沙箱运行恶意程序二进制文件获取的API调用序列，见：<br/> _Wang, Peng, Zhijie Tang, and Junfeng Wang. "A Novel Few-Shot Malware Classification Approach for Unknown Family Recognition with Multi-Prototype Modeling." Computers & Security (2021): 102273. https://doi.org/10.1016/j.cose.2021.102273_  数据集地址：https://drive.google.com/file/d/1KU3nkn-5l6q5ntQ7-hHbOOsbgF9VSAXq/view?usp=sharing
+- 静态分析数据：恶意程序二进制转灰度图，见: <br/>_Tang, Z.; Wang, P.; Wang, J. ConvProtoNet: Deep Prototype Induction towards Better Class Representation for Few-Shot Malware Classification. Appl. Sci. 2020, 10, 2847. https://doi.org/10.3390/app10082847_   
+  - 数据集地址：https://drive.google.com/file/d/11XKYjyG0h54Du07bRk7r4aFhYyF4tcCb/view?usp=sharing
+- 动态分析数据：Cuckoo沙箱运行恶意程序二进制文件获取的API调用序列，见：<br/> _Wang, Peng, Zhijie Tang, and Junfeng Wang. "A Novel Few-Shot Malware Classification Approach for Unknown Family Recognition with Multi-Prototype Modeling." Computers & Security (2021): 102273. https://doi.org/10.1016/j.cose.2021.102273_
+  - 数据集地址：https://drive.google.com/file/d/1KU3nkn-5l6q5ntQ7-hHbOOsbgF9VSAXq/view?usp=sharing
 
 ## 运行环境
 ### 硬件环境
