@@ -4,13 +4,15 @@
 基于静态/动态分析特征融合的小样本恶意代码分类框架(few-shot malware classification based on fused analysis features)的研究代码。
 包含所有数据集处理，元学习任务级封装，提出模型和基线模型的细节实现，训练/测试的运行代码等。本项目的特点包括：
 
+- **恶意代码动态/静态/混合分析支持**：不仅支持基于图像和API序列（文本序列）的多输入模态混合分析方法，还向下支持单独运行恶意代码图像（静态分析）和API序列（动态分析）任务，兼容性强
 - **高度封装的低耦合模型分层实现**：模型可以通过继承包含基础功能的父类来获得一些模型无关的基础能力，例如序列和图像嵌入，任务参数的解析等，使得新模型可以快速地进行开发
 - **高度封装的episode元学习任务采样**：将元学习任务采样封装到task实例中，方便自定义采样规则和利用接口自动采样任务batch
 - **完全参数化的模型训练和模型测试**：完全使用易读的JSON配置文件来指定模型的内部参数，例如隐藏层维度，超参数的设定，训练周期等，确保同等配置下的实验效果的可复现性
 - **模块化的模型架构解析**：使用高度封装的builder接口来获取模型，优化器，特征融合模块等架构部件，隔离了运行脚本对部件的改动的感知，使得新模型添加或者模型改动可以很容易快速完成
 - **详细的运行时和测试时数据记录**：使用dataset+version的方式来管理训练和测试运行实例，使得每一次运行都有训练/测试记录保存，方便后续统计实验效果或者复盘
 - **丰富的参数支持**：大量的运行时参数允许调整，例如Visdom可视化，控制台打印运行情况log，梯度裁剪和GPU指定等
-- **自动化任务运行支持**：支持使用自动执行机来流水线施添加预定运行任务，使得模型训练测试可以自动无人值守时完成
+- **自动化任务运行支持**：支持批量添加待运行任务，自动按照设置串行运行批量配置的任务，使得模型训练/测试可以自动无人值守时完成
+
 
 本项目中用到的动静态数据和一些基本的数据处理和模型结构可以参考以下论文：
 - 静态分析数据：恶意程序二进制转灰度图，见: <br/>_Tang, Z.; Wang, P.; Wang, J. ConvProtoNet: Deep Prototype Induction towards Better Class Representation for Few-Shot Malware Classification. Appl. Sci. 2020, 10, 2847. https://doi.org/10.3390/app10082847_   
@@ -120,7 +122,7 @@
 #### *图像数据处理
 具体方法可以参考最上方的基于恶意代码灰度图的参考文献。主要是利用16进制读取二进制文件后，按顺序将每一个字节值（2个十六进制数）转换为一个0-255的灰度值，整个字节序列就转换为灰度值序列。然后将灰度值序列按照最大的平方值进行截断，转换为一个2D的正方形图像，最后上采样/下采样至一个指定大小的图像（实验中是256×256）。处理好的图像数据保存在上一节中介绍的 *all/img/*中。可参考代码中 *preprocessing/image.py*的实现。
 
-![](files/malware_image_conversion.jpg)
+![](resources/malware_image_conversion.jpg)
 
 #### *数据集分割
 由于元学习的特殊性，数据集分割需要将恶意代码家族（类）分割，而不是类中的样本。分割前所有恶意代码家族都位于 *all*文件夹中，分割时需要把整个家族的数据移动到train，validate或者test文件夹中，而且需要同时将API序列数据和恶意代码灰度图数据对应分割移动。具体的代码实现可以参考 [preprocessing/dataset/split.py/splitDataset](https://github.com/Asichurter/MalFusionFSL/blob/main/preprocessing/dataset/split.py)。分割后，训练集的所有数据位于 *train*文件夹中，验证集和测试集分别位于 *validate*和*test*文件夹中
@@ -143,6 +145,15 @@
 
 为了保证恶意代码家族的具体的可追溯性，在每一个子集打包时，每一个恶意代码家族在打包矩阵中的下标存储为 *idx_mapping.json*，放置在对应的子集文件夹下
 
+### 运行结果记录
+一次任务开始运行后，该任务的相关记录将会被存储在使用的数据集文件夹下的`doc`文件夹内的，按照版本号`version`命名的文件夹内。运行结果记录包括：
+- 模型训练时的超参数及运行配置文件: `training.json`
+- 模型训练时数据集的训练/验证/测试集的class分割情况: `dataset_struct.json`
+- 模型训练过程中的测试/验证数据记录（主要包括训练/验证过程的accuracy等metric以及loss值）: `train_stat.json`
+- 模型测试的结果: `test_stat.json`
+- 一个以任务运行的模型为名的空文件夹，例如`SIMPLE`
+使用以上的运行结果记录数据可以保证在训练/测试后，对训练/测试结果和配置进行分析，从而保证模型运行获得的结果可以追溯
+
 ## 参数说明
 本项目的所有运行和模型超参数均使用JSON配置文件来配置（不使用运行参数）。通过配置 *config/train.json* 和 *config/test.json* 可以灵活地控制训练和测试过程中的各种参数细节，例如使用的数据集，多模态混合类型，嵌入backbone的隐藏层维度和层数，训练epoch，优化器和学习率调度器等等。运行时模型将会完全从配置文件中读取配置参数（而不会接受任何的命令行参数）来进行运行配置。每运行一次训练，训练的参数配置*config/train.json*将会保存至对应数据集doc文件夹中对应version的文件夹中，保证后续复盘时了解训练的详细配置。
 
@@ -150,7 +161,7 @@
 - **配置使用的数据集和数据源，或只启用静态/动态分析**
   - `"task | dataset"`：训练/测试使用的数据集,同名数据集文件夹必须出现在 `config/env.json/platform-node` 对应的 `DatasetBasePath` 路径下
   - `"training | data_source"`: list类型，指定训练/测试使用的数据源，合法值包括："sequence"(启用基于API序列的动态分析，读取data下的api.npy,seq_length.json等),"image"(启用静态分析，读取data下的img.npy)，也可以同时指定两者来启用混合分析
-  - `"model | fusion | type"`: 如果只使用sequence或者image数据源的其中一个，即非混合分析，需要将混合类型指定为对应的sequence或者image
+  - `"model | fusion | type"`: 指定需要使用的特征融合的类型。如果只使用sequence或者image数据源的其中一个（即非混合分析，只运行静态或者动态分析），需要将混合类型指定为对应的sequence或者image
 - **配置使用的模型**
   - `"model | model_name"`: 模型的名称，需要注册在builder中，详见[builder/model_builder.py](https://github.com/Asichurter/MalFusionFSL/blob/main/builder/model_builder.py)
 - **配置训练过程的任务参数**
@@ -174,7 +185,7 @@
 - **配置图像嵌入模块( `"conv_backbone"` 下)**
   - **配置图像嵌入类型**
     - `"type"`: 使用的图像嵌入模型类型，目前支持: "conv-4"(普通2D卷积层)，"resnet-18"和"resnet-34"。可以通过在[model/common/base_embed_model.py](https://github.com/Asichurter/MalFusionFSL/blob/main/model/common/base_embed_model.py)中进行添加来支持更多模型
-  - **配置conv-n( `*"params | conv-n"*` 下)**
+  - **配置conv-n( `"params | conv-n"` 下)**
     - `"global_pooling"`: 是否在卷积完成后，使用全局池化方法来以卷积feature map为单位进行池化
     - `"global_pooling_type"`: feature map 池化方法，默认max pooling
     - `"channels"`: 2D卷积层的通道数量，第一个默认为1（输入图像为1通道灰度图），后续通道数量与卷积层层数有关，默认4层
@@ -184,7 +195,7 @@
 - **配置序列嵌入模块( `"sequence_backbone"` 下)**
   - **配置序列嵌入类型**
     - `"seq_type"`: 序列嵌入模型的类型，目前仅支持"LSTM"，可以在[model/common/base_embed_model.py](https://github.com/Asichurter/MalFusionFSL/blob/main/model/common/base_embed_model.py)  下增加更多模型支持
-  - **配置LSTM( `*"params | LSTM"* `下)**
+  - **配置LSTM( `"params | LSTM"` 下)**
     - `"bidirectional"`: 是否使用双向LSTM
     - `"hidden_size"`: LSTM隐藏层维度（目前不支持逐层控制）
     - `"layer_num"`: LSTM层数
@@ -197,7 +208,7 @@
   - `"enabled"`: 是否启用重投影
   - `"params | out_dim"`: 输出维度
   - `"params | non_linear"`: 使用的激活函数
-- **配置训练时模型验证( `*"validate"*` 下)**
+- **配置训练时模型验证( `"validate"` 下)**
   - `"val_cycle"`: 经过多少epoch训练，将会在验证集上运行一次训练模型来验证模型泛化能力
   - `"val_epoch"`: 每一次验证运行多少个epoch
   - `"metrics"`: 验证过程中监测的指标，支持: "acc", "precision", "recall", "f1"
@@ -217,7 +228,7 @@
     - `"type"`: 调度器类型，目前仅支持"step"步数调度器，可以设置为None来不指定调度器，参见[builder/scheduler_builder.py](https://github.com/Asichurter/MalFusionFSL/blob/main/builder/scheduler_builder.py)来扩展更多待选调度器
     - `"lr_decay_iters"`: 学习率衰减周期
     - `"lr_decay_gamma"`: 学习率每次衰减的衰减系数
-- **配置训练过程可视化( `*"visualization"*` 下)**
+- **配置训练过程可视化( `"visualization"` 下)**
   - `"enabled"`: 是否开启可视化监测。默认使用visdom来监测accuracy和loss两个指标，需要开启visdom服务
   - 其他参数不在此详细展开，可参见[builder/plot_builder.py](https://github.com/Asichurter/MalFusionFSL/blob/main/builder/plot_builder.py)和[utils/plot.py](https://github.com/Asichurter/MalFusionFSL/blob/main/utils/plot.py)
 - **配置其他参数**
@@ -248,7 +259,7 @@
 
 模型整体包括API序列嵌入结构，图像嵌入结构，特征融合模块和多原型生成算法，其中模型整体结构的运行流程结构如下所示（运行一个episode）：
 
-![](files/classification_workflow_cut.PNG)
+![](resources/classification_workflow_cut.PNG)
 
 ### 基础模型 BaseModel
 基础模型包含所有模型都需要的一些基础能力，还声明了一些所有模型都需要的数据，例如损失函数，数据源，特征融合输出维度等。基础模型的代码实现参见 [model/common/base_model.py/BaseModel](https://github.com/Asichurter/MalFusionFSL/blob/main/model/common/base_model.py)
@@ -356,7 +367,7 @@
 }
 ```
 可以通过该参数下的"type"子参数来调整其他结构（需要在BaseEmbedModel中实现）。序列长度通过参数下的**max_seq_len**来调整。其他参数，例如LSTM类型的参数，包括在了该参数下的"LSTM"子项，包括双向LSTM，隐藏层维度，LSTM层数等。如果需要实现新的模型，则参数可以自定义调整，只需要在BaseEmbedModel中自行判断读取即可，默认图像嵌入结构示意图如下所示
-![](files/sequence_embedding_architecture.jpg)
+![](resources/sequence_embedding_architecture.jpg)
 - 设置图像嵌入结构和其超参数：在**model | conv_backbone**中调整图像嵌入的参数，默认使用**Conv-4**结构作为图像嵌入结构。
 ```JSON
 {
@@ -381,7 +392,7 @@
 }
 ```
 可以通过该参数下的“type"子参数来调整为其他结构，目前已实现的还有resnet18和resnet34，其他结构可以自行在BaseEmbedModel中判断并添加即可。Conv-4内的参数，包括是否使用global_pooling来将 *batch,channel,dimension* 形式的图像特征约减为一个特征向量，每一个卷积层的通道数量，卷积步幅stride，填充padding，是否使用非线性激活等，都包含在子参数**params | conv-n**中，如果需要自行实现新的模型和其参数，则在"params"下新加一个子参数项，然后在BaseEmbedModel初始化时自行读取即可。整个Conv-4图像嵌入结构如下所示:
-![](files/img_embedding_architecture.jpg)
+![](resources/img_embedding_architecture.jpg)
 - 将序列嵌入和图像嵌入流程放入嵌入管道：按顺序将序列数据的嵌入子结构放入SeqEmbedPipeline中，将图像数据的嵌入子结构放入ImgEmbedPipeline中。例如，典型的一个序列嵌入管道为: self.Embedding -> self.EmbedDrop -> self.SeqEncoder -> self.SeqTrans
 - 设置重投影模块：在序列和图像数据嵌入后分别使用两个线性层，重投影两部分特征到一个共同的维度上，可以用于统一两个特征的维度，也可以用于两个特征空间的重组。重投影的参数设置如下：
 ```JSON
@@ -398,4 +409,3 @@
 }
 ```
 - 初始化特征融合模块：根据参数中的**model | fusion | type**初始化对应的特征融合模块。主要调用了buildFusion接口，见 [builder/fusion_builder.py/buildFusion](https://github.com/Asichurter/MalFusionFSL/blob/main/builder/fusion_builder.py)
-

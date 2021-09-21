@@ -1,9 +1,9 @@
 import warnings
-import config
 import numpy as np
 import torch as t
 import time
 
+import config
 from utils.file import dumpJson, loadJson
 from utils.os import joinPath
 from utils.timer import StepTimer
@@ -252,7 +252,7 @@ class TrainStatManager:
                  metric_num=1,
                  criteria="metric",
                  criteria_metric_index=0,
-                 metric_names=['Acc'],
+                 metric_names=['acc'],
                  verbose=True):
 
         self.TrainStat = StatKernel(train_report_iter, metric_num, metric_names=metric_names)
