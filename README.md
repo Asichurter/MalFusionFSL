@@ -44,7 +44,7 @@
 本项目的正确运行依赖于若干前置准备工作，包括：数据处理和数据集制作，运行参数配置调整等。
 
 ### 数据集
-本项目使用的数据集可以在Google Drive上进行下载：[virushare-20-fusion](https://drive.google.com/file/d/1F5lTzn5_ubms288KPIImzb2dyBCS5ZB8/view?usp=sharing)。该数据集已经经过了预处理，下载解压后就可以直接使用。如果您不想使用这个处理好的数据集，想要复现或者自定义数据处理过程，可以参考下下一节中的数据处理过程指导。
+本项目使用的数据集可以在Google Drive上进行下载：[virushare-20-fusion](https://drive.google.com/file/d/1KU3nkn-5l6q5ntQ7-hHbOOsbgF9VSAXq/view?usp=sharing)。该数据集已经经过了预处理，下载解压后就可以直接使用。如果您不想使用这个处理好的数据集，想要复现或者自定义数据处理过程，可以参考下下一节中的数据处理过程指导。
 
 ### 数据集结构
 项目使用的原数据集为VirusShare_00177，可以在[VirusShare网站](https://virusshare.com/)下载得到。出于减少文件IO的想法，训练/测试过程都读取整块数据文件，而这些过程又依赖多个数据文件，这些文件都按照以下结构存放在以“数据集名字”为名的文件夹中，一个数据集对应一个文件夹。数据集文件夹整体的结构如下：
